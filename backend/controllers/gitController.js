@@ -36,10 +36,17 @@ export const configureGitRepository = async (req, res, next) => {
         });
       } catch (err) {
         console.error('[ConfigureGit] Repository verification failed:', err.message);
-        return res.status(400).json({
-          success: false,
-          message: 'GitHub repository not found, or it is private. Please ensure the repository is public and spelled correctly.',
-        });
+        
+        // Only block configuration if we are sure the repo doesn't exist (404)
+        if (err.response && err.response.status === 404) {
+          return res.status(400).json({
+            success: false,
+            message: 'GitHub repository not found, or it is private. Please ensure the repository is public and spelled correctly.',
+          });
+        }
+        
+        // For rate limiting (403), network timeouts, etc., log a warning but let the configuration proceed
+        console.warn('[ConfigureGit] Bypassing verification check due to rate-limiting or network error.');
       }
 
       workspace.gitRepository = trimmedRepo;
