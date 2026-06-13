@@ -35,11 +35,29 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env.CLIENT_URL
+].filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const isAllowed = allowedOrigins.includes(origin) || origin.endsWith('.vercel.app');
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
 // Initialize Socket.io with CORS
 const io = new Server(server, {
   pingTimeout: 60000,
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: corsOptions.origin,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
@@ -59,10 +77,7 @@ if (process.env.NODE_ENV === 'development') {
 // Request parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true,
-}));
+app.use(cors(corsOptions));
 
 // Serve uploaded files statically
 const __filename = fileURLToPath(import.meta.url);
