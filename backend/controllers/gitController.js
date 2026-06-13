@@ -31,9 +31,11 @@ export const configureGitRepository = async (req, res, next) => {
 
       // Verify the public repository exists on GitHub
       try {
-        await axios.get(`https://api.github.com/repos/${trimmedRepo}`, {
-          headers: { 'User-Agent': 'CompanyTeams-App' },
-        });
+        const headers = { 'User-Agent': 'CompanyTeams-App' };
+        if (process.env.GITHUB_TOKEN) {
+          headers.Authorization = `token ${process.env.GITHUB_TOKEN}`;
+        }
+        await axios.get(`https://api.github.com/repos/${trimmedRepo}`, { headers });
       } catch (err) {
         console.error('[ConfigureGit] Repository verification failed:', err.message);
         
@@ -81,11 +83,13 @@ export const syncGitActivities = async (req, res, next) => {
     }
 
     // Fetch the last 30 commits from the GitHub repository
+    const headers = { 'User-Agent': 'CompanyTeams-App' };
+    if (process.env.GITHUB_TOKEN) {
+      headers.Authorization = `token ${process.env.GITHUB_TOKEN}`;
+    }
     const response = await axios.get(
       `https://api.github.com/repos/${workspace.gitRepository}/commits?per_page=30`,
-      {
-        headers: { 'User-Agent': 'CompanyTeams-App' },
-      }
+      { headers }
     );
 
     const commits = response.data;
