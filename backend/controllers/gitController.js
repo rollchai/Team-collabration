@@ -82,17 +82,23 @@ export const syncGitActivities = async (req, res, next) => {
       });
     }
 
-    // Fetch the last 30 commits from the GitHub repository
-    const headers = { 'User-Agent': 'CompanyTeams-App' };
-    if (process.env.GITHUB_TOKEN) {
-      headers.Authorization = `token ${process.env.GITHUB_TOKEN}`;
-    }
-    const response = await axios.get(
-      `https://api.github.com/repos/${workspace.gitRepository}/commits?per_page=30`,
-      { headers }
-    );
+    let commits = [];
 
-    const commits = response.data;
+    // If commits are passed in the request body, use them directly (client-side fetch bypasses rate limits)
+    if (req.body.commits && Array.isArray(req.body.commits)) {
+      commits = req.body.commits;
+    } else {
+      // Fetch the last 30 commits from the GitHub repository
+      const headers = { 'User-Agent': 'CompanyTeams-App' };
+      if (process.env.GITHUB_TOKEN) {
+        headers.Authorization = `token ${process.env.GITHUB_TOKEN}`;
+      }
+      const response = await axios.get(
+        `https://api.github.com/repos/${workspace.gitRepository}/commits?per_page=30`,
+        { headers }
+      );
+      commits = response.data;
+    }
 
     if (!Array.isArray(commits)) {
       return res.status(500).json({

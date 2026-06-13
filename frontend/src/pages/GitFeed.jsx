@@ -136,9 +136,22 @@ const GitFeed = () => {
 
     setSyncing(true);
     try {
+      let commits = [];
+      try {
+        // Fetch commits directly client-side first to bypass server rate limits
+        const githubResponse = await fetch(
+          `https://api.github.com/repos/${currentWorkspace.gitRepository}/commits?per_page=30`
+        );
+        if (githubResponse.ok) {
+          commits = await githubResponse.json();
+        }
+      } catch (ghErr) {
+        console.warn('Failed client-side fetch from GitHub, trying server-side sync...', ghErr.message);
+      }
+
       const response = await API.post(
         '/git/sync',
-        {},
+        { commits },
         {
           headers: {
             'x-workspace-id': currentWorkspace._id,
