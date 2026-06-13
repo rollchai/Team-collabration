@@ -1,0 +1,155 @@
+/* Import Premium Modern Typography */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Outfit', 'Inter', sans-serif;
+  --color-primary: #10B981; /* Emerald-500 */
+  --color-primary-hover: #059669; /* Emerald-650 */
+  --color-brand-dark: #090D16; /* Deep rich dark space background */
+  --color-brand-light: #F8FAFC;
+}
+
+@layer base {
+  html, body, #root {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: var(--font-sans);
+    background-color: var(--color-brand-light);
+    color: #0F172A;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Dark mode root styles */
+  .dark-mode {
+    background-color: var(--color-brand-dark);
+    color: #F8FAFC;
+    /* Premium subtle ambient radial glows in background */
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.02) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(20, 184, 166, 0.02) 0px, transparent 50%);
+  }
+
+  /* Scrollbar customization */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+  }
+
+  .dark-mode ::-webkit-scrollbar-thumb {
+    background: #1E293B;
+  }
+  .dark-mode ::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+  }
+}
+
+/* Glassmorphism Styling Utility Classes */
+.glass-card {
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.01);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark-mode .glass-card {
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Glassmorphic card active/hover states */
+.glass-card-hover:hover {
+  transform: translateY(-2px);
+  background-color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 35px rgba(16, 185, 129, 0.05);
+}
+
+.dark-mode .glass-card-hover:hover {
+  transform: translateY(-2px);
+  background-color: rgba(15, 23, 42, 0.6);
+  border-color: rgba(16, 185, 129, 0.15);
+  box-shadow: 0 10px 35px rgba(16, 185, 129, 0.08);
+}
+
+/* Premium Gradient Text */
+.gradient-text-emerald {
+  background: linear-gradient(135deg, #34D399 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-brand {
+  background: linear-gradient(135deg, #10B981 0%, #14B8A6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Premium Gradient Backgrounds */
+.gradient-bg-emerald {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+}
+
+.gradient-bg-dark {
+  background: linear-gradient(135deg, #0F172A 0%, #020617 100%);
+}
+
+/* Glow Effects */
+.glow-primary {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}
+
+.glow-primary-hover:hover {
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);
+}
+
+/* Premium Input styling */
+.premium-input {
+  transition: all 0.2s ease;
+}
+.premium-input:focus {
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.dark-mode .premium-input:focus {
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+}
+
+/* Pulse animation for premium indicators */
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.6);
+  }
+}
+
+.pulse-glow {
+  animation: glowPulse 2s infinite ease-in-out;
+}
