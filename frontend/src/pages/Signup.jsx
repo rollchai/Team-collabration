@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signupUser } from '../redux/slices/authSlice';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { motion } from 'framer-motion';
 
 const Signup = () => {
   const dispatch = useDispatch();
@@ -37,12 +38,17 @@ const Signup = () => {
   };
 
   return (
-    <div className="w-full space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="w-full space-y-6"
+    >
       <div className="space-y-2 text-center md:text-left">
         <h1 className="font-heading text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
           Create Account
         </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-slate-500 dark:text-slate-405 font-medium">
           Get started with your collaborative workspace today.
         </p>
       </div>
@@ -50,14 +56,14 @@ const Signup = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Name */}
         <div>
-          <label className="text-3xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
+          <label className="text-3xs font-extrabold text-slate-500 dark:text-slate-450 uppercase tracking-wider block mb-1.5">
             Full Name
           </label>
           <input
             type="text"
             placeholder="John Doe"
             {...register('name', { required: 'Name is required' })}
-            className="w-full rounded-xl border border-slate-205/65 dark:border-slate-800 bg-white/40 dark:bg-slate-950/40 px-3.5 py-2.5 text-xs text-slate-800 dark:text-white outline-none premium-input backdrop-blur-md placeholder-slate-400 transition-all duration-200"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-950/40 px-3.5 py-2.5 text-xs text-slate-800 dark:text-white outline-none premium-input backdrop-blur-md placeholder-slate-400 transition-all duration-200"
           />
           {errors.name && (
             <span className="text-3xs text-rose-500 mt-1.5 block font-bold">
@@ -68,7 +74,7 @@ const Signup = () => {
 
         {/* Email */}
         <div>
-          <label className="text-3xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
+          <label className="text-3xs font-extrabold text-slate-500 dark:text-slate-450 uppercase tracking-wider block mb-1.5">
             Email Address
           </label>
           <input
@@ -81,7 +87,7 @@ const Signup = () => {
                 message: 'Invalid email address',
               },
             })}
-            className="w-full rounded-xl border border-slate-205/65 dark:border-slate-800 bg-white/40 dark:bg-slate-950/40 px-3.5 py-2.5 text-xs text-slate-800 dark:text-white outline-none premium-input backdrop-blur-md placeholder-slate-400 transition-all duration-200"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-950/40 px-3.5 py-2.5 text-xs text-slate-800 dark:text-white outline-none premium-input backdrop-blur-md placeholder-slate-400 transition-all duration-200"
           />
           {errors.email && (
             <span className="text-3xs text-rose-500 mt-1.5 block font-bold">
@@ -92,7 +98,7 @@ const Signup = () => {
 
         {/* Password */}
         <div>
-          <label className="text-3xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
+          <label className="text-3xs font-extrabold text-slate-500 dark:text-slate-450 uppercase tracking-wider block mb-1.5">
             Password
           </label>
           <input
@@ -105,7 +111,7 @@ const Signup = () => {
                 message: 'Password must be at least 6 characters',
               },
             })}
-            className="w-full rounded-xl border border-slate-205/65 dark:border-slate-800 bg-white/40 dark:bg-slate-950/40 px-3.5 py-2.5 text-xs text-slate-800 dark:text-white outline-none premium-input backdrop-blur-md placeholder-slate-400 transition-all duration-200"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-950/40 px-3.5 py-2.5 text-xs text-slate-800 dark:text-white outline-none premium-input backdrop-blur-md placeholder-slate-400 transition-all duration-200"
           />
           {errors.password && (
             <span className="text-3xs text-rose-500 mt-1.5 block font-bold">
@@ -115,17 +121,19 @@ const Signup = () => {
         </div>
 
         {/* Submit */}
-        <button
+        <motion.button
+          whileHover={{ scale: 1.015 }}
+          whileTap={{ scale: 0.985 }}
           type="submit"
           disabled={loading}
-          className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-650 px-4.5 py-3 text-xs font-extrabold text-white shadow-md shadow-emerald-500/10 transition-all duration-250 cursor-pointer disabled:opacity-50 hover:scale-[1.015] active:scale-[0.985]"
+          className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-650 px-4.5 py-3 text-xs font-extrabold text-white shadow-md shadow-emerald-500/10 transition-all duration-250 cursor-pointer disabled:opacity-50"
         >
           {loading ? (
             <Loader2 className="h-4.5 w-4.5 animate-spin" />
           ) : (
             'Sign Up'
           )}
-        </button>
+        </motion.button>
       </form>
 
       <div className="text-center text-xs text-slate-500 dark:text-slate-400 font-semibold pt-2">
@@ -137,7 +145,7 @@ const Signup = () => {
           Sign in
         </Link>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getSocket, connectSocket, disconnectSocket } from '../services/socket';
 import {
   LayoutDashboard,
@@ -37,6 +38,7 @@ import {
   setCurrentWorkspace,
   createWorkspace,
   joinWorkspaceByCode,
+  clearWorkspaceState,
 } from '../redux/slices/workspaceSlice';
 import { fetchChannels, addChannelLocally } from '../redux/slices/channelSlice';
 import { fetchNotifications, addLiveNotification, markRead } from '../redux/slices/notificationSlice';
@@ -287,15 +289,26 @@ const DashboardLayout = () => {
     navigate('/login');
   };
 
-  // Active styles for sidebar menu
-  const getMenuClass = (pathName) => {
-    const isMatched = location.pathname.endsWith(pathName);
-    return `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-      isMatched
-        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25 border border-emerald-400/20 scale-[1.01]'
-        : 'text-slate-655 dark:text-slate-400 hover:bg-slate-100/70 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-white border border-transparent'
-    }`;
-  };
+  const navItems = [
+    { name: 'Dashboard', path: 'dashboard', icon: LayoutDashboard },
+    { name: 'Workspace Wiki', path: 'wiki', icon: BookOpen },
+    { name: 'Git Activity', path: 'git-feed', icon: GitBranch },
+    { name: 'Chat & Channels', path: 'chat', icon: MessageSquare },
+    { name: 'Tasks', path: 'tasks', icon: ListTodo },
+    { name: 'Files', path: 'files', icon: FolderOpen },
+    { name: 'Calendar', path: 'calendar', icon: Calendar },
+    { name: 'Timeline', path: 'timeline', icon: CalendarRange },
+    { name: 'Leaderboard', path: 'performance', icon: Trophy },
+    { name: 'Members', path: 'members', icon: Users },
+  ];
+
+  const activeWorkspaceName = currentWorkspace?.name || 'SyncFlow';
+  const unreadNotifications = notifications.filter((n) => !n.read).length;
+  
+  const currentNavItems = [...navItems];
+  if (['Admin', 'Manager'].includes(currentRole)) {
+    currentNavItems.push({ name: 'Settings', path: 'settings', icon: Settings });
+  }
 
   if (workspaceLoading && workspaces.length === 0) {
     return (
@@ -305,29 +318,26 @@ const DashboardLayout = () => {
     );
   }
 
-  const activeWorkspaceName = currentWorkspace?.name || 'SyncFlow';
-  const unreadNotifications = notifications.filter((n) => !n.read).length;
-
   return (
     <div className={`flex h-screen w-screen overflow-hidden ${darkMode ? 'dark-mode dark' : 'bg-slate-50'}`}>
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
 
       {/* LEFT SIDEBAR - Desktop */}
-      <aside className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-slate-200/50 dark:border-slate-800/50 bg-white/80 dark:bg-slate-955/65 backdrop-blur-lg transition-transform duration-300 md:static md:translate-x-0 ${
+      <aside className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-slate-200/50 dark:border-slate-800/50 bg-white/80 dark:bg-[#070b13] backdrop-blur-lg transition-transform duration-300 md:static md:translate-x-0 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         {/* Workspace Switcher Header */}
         <div className="relative border-b border-slate-200/50 dark:border-slate-800/50 px-4 py-3.5">
           <button
             onClick={() => setWorkspaceDropdownOpen(!workspaceDropdownOpen)}
-            className="flex w-full items-center justify-between rounded-xl px-2 py-1.5 text-left hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition-colors"
+            className="flex w-full items-center justify-between rounded-xl px-2 py-1.5 text-left hover:bg-slate-100/60 dark:hover:bg-slate-805/40 transition-colors"
           >
             <div className="flex items-center gap-3">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white font-bold text-lg shadow-md shadow-emerald-500/10">
                 {activeWorkspaceName.charAt(0).toUpperCase()}
               </span>
               <div>
-                <h2 className="font-heading font-bold text-sm text-slate-850 dark:text-slate-100 truncate w-36">
+                <h2 className="font-heading font-bold text-sm text-slate-800 truncate w-36">
                   {activeWorkspaceName}
                 </h2>
                 <p className="text-xs font-semibold text-slate-400">
@@ -339,127 +349,107 @@ const DashboardLayout = () => {
           </button>
 
           {/* Workspace Dropdown Panel */}
-          {workspaceDropdownOpen && (
-            <div className="absolute left-4 right-4 top-16 z-40 mt-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-2 shadow-lg animate-in fade-in slide-in-from-top-1 duration-150">
-              <div className="max-h-48 overflow-y-auto space-y-1">
-                {workspaces.map((w) => (
-                  <button
-                    key={w.workspace._id}
-                    onClick={() => {
-                      dispatch(setCurrentWorkspace(w.workspace));
-                      setWorkspaceDropdownOpen(false);
-                      setSidebarOpen(false);
-                      navigate(`/workspace/${w.workspace.slug}/dashboard`);
-                    }}
-                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium transition-colors ${
-                      currentWorkspace?._id === w.workspace._id
-                        ? 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900'
-                    }`}
-                  >
-                    <span className="flex h-6 w-6 items-center justify-center rounded bg-slate-100 dark:bg-slate-800 font-bold">
-                      {w.workspace.name.charAt(0).toUpperCase()}
-                    </span>
-                    <span className="truncate">{w.workspace.name}</span>
-                  </button>
-                ))}
-              </div>
-              <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
-              <button
-                onClick={() => {
-                  setWorkspaceDropdownOpen(false);
-                  navigate('/workspaces');
-                }}
-                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          <AnimatePresence>
+            {workspaceDropdownOpen && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                transition={{ duration: 0.15 }}
+                className="absolute left-4 right-4 top-16 z-40 mt-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-2 shadow-lg"
               >
-                <Compass className="h-4 w-4 text-green-500" /> Switch Workspaces
-              </button>
-              <button
-                onClick={() => {
-                  setCreateWorkspaceOpen(true);
-                  setWorkspaceDropdownOpen(false);
-                }}
-                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/20 transition-colors"
-              >
-                <Plus className="h-4 w-4" /> Create Workspace
-              </button>
-              <button
-                onClick={() => {
-                  setJoinWorkspaceOpen(true);
-                  setWorkspaceDropdownOpen(false);
-                }}
-                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"
-              >
-                <Users className="h-4 w-4" /> Join Workspace
-              </button>
-            </div>
-          )}
+                <div className="max-h-48 overflow-y-auto space-y-1 scrollbar-premium">
+                  {workspaces.map((w) => (
+                    <button
+                      key={w.workspace._id}
+                      onClick={() => {
+                        dispatch(setCurrentWorkspace(w.workspace));
+                        setWorkspaceDropdownOpen(false);
+                        setSidebarOpen(false);
+                        navigate(`/workspace/${w.workspace.slug}/dashboard`);
+                      }}
+                      className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium transition-colors ${
+                        currentWorkspace?._id === w.workspace._id
+                          ? 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400'
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900'
+                      }`}
+                    >
+                      <span className="flex h-6 w-6 items-center justify-center rounded bg-slate-100 dark:bg-slate-850 font-bold">
+                        {w.workspace.name.charAt(0).toUpperCase()}
+                      </span>
+                      <span className="truncate">{w.workspace.name}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
+                <button
+                  onClick={() => {
+                    setWorkspaceDropdownOpen(false);
+                    navigate('/workspaces');
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <Compass className="h-4 w-4 text-green-500" /> Switch Workspaces
+                </button>
+                <button
+                  onClick={() => {
+                    setCreateWorkspaceOpen(true);
+                    setWorkspaceDropdownOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/20 transition-colors"
+                >
+                  <Plus className="h-4 w-4" /> Create Workspace
+                </button>
+                <button
+                  onClick={() => {
+                    setJoinWorkspaceOpen(true);
+                    setWorkspaceDropdownOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"
+                >
+                  <Users className="h-4 w-4" /> Join Workspace
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Sidebar Nav Links */}
-        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-1 scrollbar-premium">
           {currentWorkspace ? (
-            <>
-              <button onClick={() => { navigate(`/workspace/${currentWorkspace.slug}/dashboard`); setSidebarOpen(false); }} className="w-full text-left block">
-                <span className={getMenuClass('dashboard')}>
-                  <LayoutDashboard className="h-4.5 w-4.5" /> Dashboard
-                </span>
-              </button>
-              <button onClick={() => { navigate(`/workspace/${currentWorkspace.slug}/wiki`); setSidebarOpen(false); }} className="w-full text-left block">
-                <span className={getMenuClass('wiki')}>
-                  <BookOpen className="h-4.5 w-4.5" /> Workspace Wiki
-                </span>
-              </button>
-              <button onClick={() => { navigate(`/workspace/${currentWorkspace.slug}/git-feed`); setSidebarOpen(false); }} className="w-full text-left block">
-                <span className={getMenuClass('git-feed')}>
-                  <GitBranch className="h-4.5 w-4.5" /> Git Activity
-                </span>
-              </button>
-              <button onClick={() => { navigate(`/workspace/${currentWorkspace.slug}/chat`); setSidebarOpen(false); }} className="w-full text-left block">
-                <span className={getMenuClass('chat')}>
-                  <MessageSquare className="h-4.5 w-4.5" /> Chat & Channels
-                </span>
-              </button>
-              <button onClick={() => { navigate(`/workspace/${currentWorkspace.slug}/tasks`); setSidebarOpen(false); }} className="w-full text-left block">
-                <span className={getMenuClass('tasks')}>
-                  <ListTodo className="h-4.5 w-4.5" /> Tasks
-                </span>
-              </button>
-              <button onClick={() => { navigate(`/workspace/${currentWorkspace.slug}/files`); setSidebarOpen(false); }} className="w-full text-left block">
-                <span className={getMenuClass('files')}>
-                  <FolderOpen className="h-4.5 w-4.5" /> Files
-                </span>
-              </button>
-              <button onClick={() => { navigate(`/workspace/${currentWorkspace.slug}/calendar`); setSidebarOpen(false); }} className="w-full text-left block">
-                <span className={getMenuClass('calendar')}>
-                  <Calendar className="h-4.5 w-4.5" /> Calendar
-                </span>
-              </button>
-              <button onClick={() => { navigate(`/workspace/${currentWorkspace.slug}/timeline`); setSidebarOpen(false); }} className="w-full text-left block">
-                <span className={getMenuClass('timeline')}>
-                  <CalendarRange className="h-4.5 w-4.5" /> Timeline
-                </span>
-              </button>
-              <button onClick={() => { navigate(`/workspace/${currentWorkspace.slug}/performance`); setSidebarOpen(false); }} className="w-full text-left block">
-                <span className={getMenuClass('performance')}>
-                  <Trophy className="h-4.5 w-4.5" /> Leaderboard
-                </span>
-              </button>
-              <button onClick={() => { navigate(`/workspace/${currentWorkspace.slug}/members`); setSidebarOpen(false); }} className="w-full text-left block">
-                <span className={getMenuClass('members')}>
-                  <Users className="h-4.5 w-4.5" /> Members
-                </span>
-              </button>
-              
-              {/* Only Manager / Admin roles can access Settings */}
-              {['Admin', 'Manager'].includes(currentRole) && (
-                <button onClick={() => { navigate(`/workspace/${currentWorkspace.slug}/settings`); setSidebarOpen(false); }} className="w-full text-left block">
-                  <span className={getMenuClass('settings')}>
-                    <Settings className="h-4.5 w-4.5" /> Settings
+            currentNavItems.map((item) => {
+              const isMatched = location.pathname.endsWith(item.path);
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => {
+                    navigate(`/workspace/${currentWorkspace.slug}/${item.path}`);
+                    setSidebarOpen(false);
+                  }}
+                  className="w-full text-left block relative group"
+                >
+                  <span className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 relative z-10 ${
+                    isMatched
+                      ? 'text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white'
+                  }`}>
+                    <Icon className={`h-4.5 w-4.5 transition-transform duration-300 ${isMatched ? 'scale-110' : 'group-hover:scale-110'}`} />
+                    {item.name}
                   </span>
+                  {isMatched && (
+                    <motion.span
+                      layoutId="activeNavBg"
+                      className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl shadow-lg shadow-emerald-500/15 border border-emerald-400/20"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                  {!isMatched && (
+                    <span className="absolute inset-0 rounded-xl bg-slate-100/50 dark:bg-slate-800/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                  )}
                 </button>
-              )}
-            </>
+              );
+            })
           ) : (
             <div className="flex h-full flex-col items-center justify-center p-4 text-center">
               <p className="text-xs text-slate-400">Please create or join a workspace to start.</p>
@@ -478,7 +468,7 @@ const DashboardLayout = () => {
                 <img
                   src={user?.avatar}
                   alt={user?.name}
-                  className="h-9 w-9 rounded-full object-cover shadow-sm border border-slate-100"
+                  className="h-9 w-9 rounded-full object-cover shadow-sm border border-slate-100 dark:border-slate-800"
                 />
                 <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-green-500 dark:border-slate-900"></span>
               </div>
@@ -491,34 +481,42 @@ const DashboardLayout = () => {
             </button>
 
             {/* Profile Dropdown */}
-            {profileDropdownOpen && (
-              <div className="absolute bottom-12 left-0 right-0 z-40 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-2 shadow-lg animate-in fade-in slide-in-from-bottom-1 duration-150">
-                <div className="px-2 py-1 text-xs text-slate-400 font-semibold uppercase tracking-wider">
-                  Set Status
-                </div>
-                <div className="space-y-1">
-                  <button
-                    onClick={() => updateUserStatus('online')}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-900"
-                  >
-                    <Circle className="h-2 w-2 fill-green-500 text-green-500" /> Online
-                  </button>
-                  <button
-                    onClick={() => updateUserStatus('away')}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-900"
-                  >
-                    <Circle className="h-2 w-2 fill-amber-500 text-amber-500" /> Away
-                  </button>
-                </div>
-                <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
-                <button
-                  onClick={handleLogout}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
+            <AnimatePresence>
+              {profileDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute bottom-12 left-0 right-0 z-40 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-2 shadow-lg"
                 >
-                  <LogOut className="h-4 w-4" /> Sign Out
-                </button>
-              </div>
-            )}
+                  <div className="px-2 py-1 text-xs text-slate-400 font-semibold uppercase tracking-wider">
+                    Set Status
+                  </div>
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => updateUserStatus('online')}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-900"
+                    >
+                      <Circle className="h-2 w-2 fill-green-500 text-green-500" /> Online
+                    </button>
+                    <button
+                      onClick={() => updateUserStatus('away')}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-900"
+                    >
+                      <Circle className="h-2 w-2 fill-amber-500 text-amber-500" /> Away
+                    </button>
+                  </div>
+                  <div className="my-2 border-t border-slate-100 dark:border-slate-800"></div>
+                  <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
+                  >
+                    <LogOut className="h-4 w-4" /> Sign Out
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </aside>
@@ -636,223 +634,271 @@ const DashboardLayout = () => {
               )}
             </div>
           </div>
-        </header>
-
-        {/* PAGE CONTENT CONTAINER */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 dark:bg-slate-950 transition-colors">
-          <Outlet />
+        </header>        {/* PAGE CONTENT CONTAINER */}
+        <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#070b13] transition-colors relative">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="p-4 md:p-6 h-full"
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
 
       {/* CREATE WORKSPACE MODAL */}
-      {createWorkspaceOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-100 dark:border-slate-800 scale-in duration-200">
-            <h3 className="font-heading text-lg font-bold text-slate-900 dark:text-white">
-              Create a new workspace
-            </h3>
-            <p className="mt-1 text-xs text-slate-400">
-              Workspaces are shared hubs where teams can chat, structure boards, and share resources.
-            </p>
-            <form onSubmit={handleCreateWorkspace} className="mt-4 space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
-                  Workspace Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Acme Marketing, Project Omega"
-                  value={newWorkspaceName}
-                  onChange={(e) => setNewWorkspaceName(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-800 dark:text-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                  required
-                />
-              </div>
-              <div className="flex justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setCreateWorkspaceOpen(false)}
-                  className="rounded-lg px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-green-500 hover:bg-green-600 px-4 py-2 text-xs font-bold text-white shadow"
-                >
-                  Create Workspace
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {createWorkspaceOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-100 dark:border-slate-805"
+            >
+              <h3 className="font-heading text-lg font-bold text-slate-900 dark:text-white">
+                Create a new workspace
+              </h3>
+              <p className="mt-1 text-xs text-slate-450 dark:text-slate-400 font-medium">
+                Workspaces are shared hubs where teams can chat, structure boards, and share resources.
+              </p>
+              <form onSubmit={handleCreateWorkspace} className="mt-4 space-y-4">
+                <div>
+                  <label className="text-3xs font-extrabold text-slate-500 uppercase tracking-wider block mb-1">
+                    Workspace Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Acme Marketing, Project Omega"
+                    value={newWorkspaceName}
+                    onChange={(e) => setNewWorkspaceName(e.target.value)}
+                    className="w-full rounded-xl border border-slate-205 dark:border-slate-800 bg-white/40 dark:bg-slate-950/40 px-3.5 py-2.5 text-xs text-slate-800 dark:text-white outline-none premium-input placeholder-slate-400"
+                    required
+                  />
+                </div>
+                <div className="flex justify-end gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setCreateWorkspaceOpen(false)}
+                    className="rounded-xl px-4 py-2 text-xs font-bold text-slate-505 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-605 px-4.5 py-2 text-xs font-extrabold text-white shadow-md shadow-emerald-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                  >
+                    Create Workspace
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* JOIN WORKSPACE MODAL */}
-      {joinWorkspaceOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-100 dark:border-slate-800 scale-in duration-200">
-            <h3 className="font-heading text-lg font-bold text-slate-900 dark:text-white">
-              Join a Workspace
-            </h3>
-            <p className="mt-1 text-xs text-slate-400">
-              Enter the unique workspace invitation code to join your team.
-            </p>
-            <form onSubmit={handleJoinWorkspace} className="mt-4 space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
-                  Invite Code
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. a1b2c3d4"
-                  value={inviteCodeInput}
-                  onChange={(e) => setInviteCodeInput(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-800 dark:text-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                  required
-                />
-              </div>
-              <div className="flex justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setJoinWorkspaceOpen(false)}
-                  className="rounded-lg px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-green-500 hover:bg-green-600 px-4 py-2 text-xs font-bold text-white shadow"
-                >
-                  Join Workspace
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {joinWorkspaceOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-100 dark:border-slate-805"
+            >
+              <h3 className="font-heading text-lg font-bold text-slate-900 dark:text-white">
+                Join a Workspace
+              </h3>
+              <p className="mt-1 text-xs text-slate-450 dark:text-slate-400 font-medium">
+                Enter the unique workspace invitation code to join your team.
+              </p>
+              <form onSubmit={handleJoinWorkspace} className="mt-4 space-y-4">
+                <div>
+                  <label className="text-3xs font-extrabold text-slate-500 uppercase tracking-wider block mb-1">
+                    Invite Code
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. a1b2c3d4"
+                    value={inviteCodeInput}
+                    onChange={(e) => setInviteCodeInput(e.target.value)}
+                    className="w-full rounded-xl border border-slate-205 dark:border-slate-800 bg-white/40 dark:bg-slate-955/40 px-3.5 py-2.5 text-xs text-slate-800 dark:text-white outline-none premium-input placeholder-slate-400"
+                    required
+                  />
+                </div>
+                <div className="flex justify-end gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setJoinWorkspaceOpen(false)}
+                    className="rounded-xl px-4 py-2 text-xs font-bold text-slate-505 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-650 px-4.5 py-2 text-xs font-extrabold text-white shadow-md shadow-emerald-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                  >
+                    Join Workspace
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* GLOBAL SEARCH MODAL */}
-      {searchOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/45 backdrop-blur-xs p-4 pt-16 animate-in fade-in duration-150">
-          <div className="w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-100 dark:border-slate-800 scale-in duration-150 overflow-hidden">
-            <div className="flex items-center gap-3 border-b border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50 dark:bg-slate-950/20">
-              <Search className="h-5 w-5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search messages, tasks, files..."
-                value={searchQuery}
-                onChange={(e) => executeSearch(e.target.value)}
-                className="flex-1 bg-transparent text-sm text-slate-800 dark:text-white outline-none"
-                autoFocus
-              />
-              <button
-                onClick={() => {
-                  setSearchOpen(false);
-                  setSearchQuery('');
-                  setSearchResults({ messages: [], tasks: [], files: [] });
-                }}
-                className="rounded p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            
-            <div className="max-h-96 overflow-y-auto p-4 space-y-4">
-              {searching ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-green-500" />
-                </div>
-              ) : !searchQuery ? (
-                <p className="text-center text-xs text-slate-400 py-4">
-                  Type something to search this workspace...
-                </p>
-              ) : searchResults.messages.length === 0 && searchResults.tasks.length === 0 && searchResults.files.length === 0 ? (
-                <p className="text-center text-xs text-slate-400 py-4">
-                  No matching results found.
-                </p>
-              ) : (
-                <>
-                  {/* Message Results */}
-                  {searchResults.messages.length > 0 && (
-                    <div>
-                      <h4 className="text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Messages</h4>
-                      <div className="space-y-2">
-                        {searchResults.messages.map((m) => (
-                          <div
-                            key={m._id}
-                            onClick={() => {
-                              setSearchOpen(false);
-                              navigate(`/workspace/${currentWorkspace.slug}/chat`);
-                            }}
-                            className="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all text-xs"
-                          >
-                            <div className="flex justify-between font-bold text-slate-600 dark:text-slate-300">
-                              <span>{m.sender?.name}</span>
-                              <span className="text-3xs text-slate-400">{new Date(m.createdAt).toLocaleDateString()}</span>
+      <AnimatePresence>
+        {searchOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-xs p-4 pt-16"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -20 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden"
+            >
+              <div className="flex items-center gap-3 border-b border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50 dark:bg-slate-950/20">
+                <Search className="h-5 w-5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search messages, tasks, files..."
+                  value={searchQuery}
+                  onChange={(e) => executeSearch(e.target.value)}
+                  className="flex-1 bg-transparent text-sm text-slate-800 dark:text-white outline-none"
+                  autoFocus
+                />
+                <button
+                  onClick={() => {
+                    setSearchOpen(false);
+                    setSearchQuery('');
+                    setSearchResults({ messages: [], tasks: [], files: [] });
+                  }}
+                  className="rounded p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <X className="h-4.5 w-4.5" />
+                </button>
+              </div>
+              
+              <div className="max-h-96 overflow-y-auto p-4 space-y-4 scrollbar-premium">
+                {searching ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-green-500" />
+                  </div>
+                ) : !searchQuery ? (
+                  <p className="text-center text-xs text-slate-400 py-4 font-semibold">
+                    Type something to search this workspace...
+                  </p>
+                ) : searchResults.messages.length === 0 && searchResults.tasks.length === 0 && searchResults.files.length === 0 ? (
+                  <p className="text-center text-xs text-slate-400 py-4 font-semibold">
+                    No matching results found.
+                  </p>
+                ) : (
+                  <>
+                    {/* Message Results */}
+                    {searchResults.messages.length > 0 && (
+                      <div>
+                        <h4 className="text-2xs font-semibold text-slate-450 dark:text-slate-500 uppercase tracking-wider mb-2">Messages</h4>
+                        <div className="space-y-2">
+                          {searchResults.messages.map((m) => (
+                            <div
+                              key={m._id}
+                              onClick={() => {
+                                setSearchOpen(false);
+                                navigate(`/workspace/${currentWorkspace.slug}/chat`);
+                              }}
+                              className="p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-805 cursor-pointer border border-transparent hover:border-slate-150 dark:hover:border-slate-800 transition-all text-xs"
+                            >
+                              <div className="flex justify-between font-bold text-slate-655 dark:text-slate-300">
+                                <span>{m.sender?.name}</span>
+                                <span className="text-3xs text-slate-400">{new Date(m.createdAt).toLocaleDateString()}</span>
+                              </div>
+                              <p className="text-slate-500 dark:text-slate-400 mt-1 truncate">{m.content}</p>
                             </div>
-                            <p className="text-slate-500 dark:text-slate-400 mt-1 truncate">{m.content}</p>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Task Results */}
-                  {searchResults.tasks.length > 0 && (
-                    <div>
-                      <h4 className="text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Tasks</h4>
-                      <div className="space-y-2">
-                        {searchResults.tasks.map((t) => (
-                          <div
-                            key={t._id}
-                            onClick={() => {
-                              setSearchOpen(false);
-                              navigate(`/workspace/${currentWorkspace.slug}/tasks`);
-                            }}
-                            className="flex justify-between items-center p-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all text-xs"
-                          >
-                            <div>
-                              <h5 className="font-bold text-slate-700 dark:text-slate-200">{t.title}</h5>
-                              <p className="text-3xs text-slate-400 mt-0.5">Status: <span className="text-green-500">{t.status}</span></p>
+                    {/* Task Results */}
+                    {searchResults.tasks.length > 0 && (
+                      <div>
+                        <h4 className="text-2xs font-semibold text-slate-450 dark:text-slate-500 uppercase tracking-wider mb-2">Tasks</h4>
+                        <div className="space-y-2">
+                          {searchResults.tasks.map((t) => (
+                            <div
+                              key={t._id}
+                              onClick={() => {
+                                setSearchOpen(false);
+                                navigate(`/workspace/${currentWorkspace.slug}/tasks`);
+                              }}
+                              className="flex justify-between items-center p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-805 cursor-pointer border border-transparent hover:border-slate-150 dark:hover:border-slate-800 transition-all text-xs"
+                            >
+                              <div>
+                                <h5 className="font-bold text-slate-700 dark:text-slate-205">{t.title}</h5>
+                                <p className="text-3xs text-slate-400 mt-0.5 font-bold">Status: <span className="text-emerald-500">{t.status}</span></p>
+                              </div>
+                              <span className={`px-2.5 py-0.5 rounded-lg text-3xs font-extrabold ${
+                                t.priority === 'High' ? 'bg-red-50 text-red-500 dark:bg-red-950/20' : t.priority === 'Medium' ? 'bg-amber-50 text-amber-500 dark:bg-amber-955/20' : 'bg-slate-100 text-slate-550'
+                              }`}>
+                                {t.priority}
+                              </span>
                             </div>
-                            <span className={`px-2 py-0.5 rounded text-3xs font-bold ${
-                              t.priority === 'High' ? 'bg-red-50 text-red-500' : t.priority === 'Medium' ? 'bg-amber-50 text-amber-500' : 'bg-slate-50 text-slate-500'
-                            }`}>
-                              {t.priority}
-                            </span>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* File Results */}
-                  {searchResults.files.length > 0 && (
-                    <div>
-                      <h4 className="text-2xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Files</h4>
-                      <div className="grid grid-cols-1 gap-2">
-                        {searchResults.files.map((f) => (
-                          <a
-                            key={f._id}
-                            href={f.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex justify-between items-center p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent hover:border-slate-100 dark:hover:border-slate-700 text-xs"
-                          >
-                            <span className="font-medium text-green-600 hover:underline truncate w-72">{f.name}</span>
-                            <span className="text-3xs text-slate-400">{(f.size / 1024).toFixed(1)} KB</span>
-                          </a>
-                        ))}
+                    {/* File Results */}
+                    {searchResults.files.length > 0 && (
+                      <div>
+                        <h4 className="text-2xs font-semibold text-slate-455 dark:text-slate-500 uppercase tracking-wider mb-2">Files</h4>
+                        <div className="grid grid-cols-1 gap-2">
+                          {searchResults.files.map((f) => (
+                            <a
+                              key={f._id}
+                              href={f.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex justify-between items-center p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-805 border border-transparent hover:border-slate-150 dark:hover:border-slate-800 transition-all text-xs"
+                            >
+                              <span className="font-bold text-green-600 dark:text-green-400 hover:underline truncate w-72">{f.name}</span>
+                              <span className="text-3xs text-slate-450 dark:text-slate-500 font-bold">{(f.size / 1024).toFixed(1)} KB</span>
+                            </a>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+                    )}
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

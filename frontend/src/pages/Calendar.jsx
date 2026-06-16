@@ -7,9 +7,9 @@ import {
   ListTodo,
   Loader2,
   Clock,
-  CheckCircle2,
   AlertCircle
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { fetchTasks } from '../redux/slices/taskSlice';
 
 const Calendar = () => {
@@ -105,8 +105,29 @@ const Calendar = () => {
     .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
     .slice(0, 5);
 
+  // Stagger animation states
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 350, damping: 25 } }
+  };
+
   return (
-    <div className="space-y-6 h-full flex flex-col">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-6 h-full flex flex-col"
+    >
       {/* Calendar Header Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-2 gap-4">
         <div className="flex items-center gap-3">
@@ -117,31 +138,37 @@ const Calendar = () => {
             <h1 className="font-heading text-xl md:text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight leading-tight">
               {monthNames[month]} {year}
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs text-slate-505 dark:text-slate-400 mt-1">
               Track project deadlines, scheduled releases, and sprint timelines.
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2.5">
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handlePrevMonth}
             className="rounded-xl border border-slate-205/65 dark:border-slate-800 p-2 hover:bg-slate-50 dark:hover:bg-slate-900/30 text-slate-500 hover:text-emerald-500 transition-colors cursor-pointer"
           >
             <ChevronLeft className="h-4.5 w-4.5" />
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => setCurrentDate(new Date())}
             className="rounded-xl border border-slate-205/65 dark:border-slate-800 px-4 py-2 text-xs font-bold text-slate-655 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/30 cursor-pointer transition-colors"
           >
             Today
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleNextMonth}
             className="rounded-xl border border-slate-205/65 dark:border-slate-800 p-2 hover:bg-slate-50 dark:hover:bg-slate-900/30 text-slate-500 hover:text-emerald-500 transition-colors cursor-pointer"
           >
             <ChevronRight className="h-4.5 w-4.5" />
-          </button>
+          </motion.button>
         </div>
       </div>
 
@@ -153,7 +180,7 @@ const Calendar = () => {
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 flex-1 items-stretch">
           
           {/* Main Month Grid (Colspan 3) */}
-          <div className="xl:col-span-3 glass-card rounded-2xl overflow-hidden flex flex-col">
+          <div className="xl:col-span-3 glass-card rounded-2xl overflow-hidden flex flex-col shadow-sm">
             {/* Days labels */}
             <div className="grid grid-cols-7 border-b border-slate-200/40 dark:border-slate-800/60 text-center bg-slate-50/40 dark:bg-slate-950/20 py-3">
               {daysOfWeek.map((day) => (
@@ -163,55 +190,67 @@ const Calendar = () => {
               ))}
             </div>
 
-            {/* Monthly grid */}
-            <div className="grid grid-cols-7 grid-rows-6 flex-1 divide-x divide-y divide-slate-200/30 dark:divide-slate-800/50">
-              {calendarCells.map((cell, idx) => {
-                const dayTasks = getTasksForDate(cell.date);
-                const cellIsToday = isToday(cell.date);
+            {/* Monthly grid with transition */}
+            <div className="relative flex-1 min-h-[500px]">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${month}-${year}`}
+                  initial={{ opacity: 0, scale: 0.995 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.995 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 grid grid-cols-7 grid-rows-6 divide-x divide-y divide-slate-200/30 dark:divide-slate-800/50"
+                >
+                  {calendarCells.map((cell, idx) => {
+                    const dayTasks = getTasksForDate(cell.date);
+                    const cellIsToday = isToday(cell.date);
 
-                return (
-                  <div
-                    key={idx}
-                    className={`flex flex-col min-h-[85px] p-2.5 space-y-1.5 transition-all duration-150 group overflow-hidden ${
-                      cell.isCurrentMonth
-                        ? 'bg-transparent hover:bg-slate-50/30 dark:hover:bg-slate-900/5'
-                        : 'bg-slate-50/30 dark:bg-slate-950/10 opacity-45'
-                    }`}
-                  >
-                    {/* Day Date Label */}
-                    <div className="flex items-center justify-between">
-                      <span className={`text-2xs font-extrabold leading-none flex h-5.5 w-5.5 items-center justify-center rounded-xl transition-all ${
-                        cellIsToday
-                          ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/20'
-                          : cell.isCurrentMonth
-                          ? 'text-slate-750 dark:text-slate-300'
-                          : 'text-slate-400'
-                      }`}>
-                        {cell.date.getDate()}
-                      </span>
-                    </div>
-
-                    {/* Day Tasks list */}
-                    <div className="flex-1 overflow-y-auto space-y-1.5 scrollbar-thin">
-                      {dayTasks.map((task) => (
-                        <div
-                          key={task._id}
-                          className={`px-2 py-1 rounded-lg text-4xs font-extrabold truncate border transition-all ${
-                            task.status === 'Completed'
-                              ? 'bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/15'
-                              : task.priority === 'High'
-                              ? 'bg-rose-500/5 text-rose-600 dark:text-rose-450 border-rose-500/15'
-                              : 'bg-amber-500/5 text-amber-600 dark:text-amber-450 border-amber-500/15'
-                          }`}
-                          title={`${task.title} [${task.status}]`}
-                        >
-                          {task.title}
+                    return (
+                      <motion.div
+                        key={idx}
+                        whileHover={cell.isCurrentMonth ? { scale: 1.012, zIndex: 10, shadow: 'rgba(0,0,0,0.05) 0px 10px 15px -3px' } : {}}
+                        className={`flex flex-col min-h-[85px] p-2.5 space-y-1.5 transition-all duration-150 group overflow-hidden ${
+                          cell.isCurrentMonth
+                            ? 'bg-transparent hover:bg-slate-50/30 dark:hover:bg-slate-900/5 hover:shadow-2xs dark:hover:shadow-none'
+                            : 'bg-slate-50/30 dark:bg-slate-950/10 opacity-45'
+                        }`}
+                      >
+                        {/* Day Date Label */}
+                        <div className="flex items-center justify-between">
+                          <span className={`text-2xs font-extrabold leading-none flex h-6 w-6 items-center justify-center rounded-xl transition-all ${
+                            cellIsToday
+                              ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/20 font-extrabold'
+                              : cell.isCurrentMonth
+                              ? 'text-slate-750 dark:text-slate-300'
+                              : 'text-slate-400'
+                          }`}>
+                            {cell.date.getDate()}
+                          </span>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
+
+                        {/* Day Tasks list */}
+                        <div className="flex-1 overflow-y-auto space-y-1.5 scrollbar-thin">
+                          {dayTasks.map((task) => (
+                            <div
+                              key={task._id}
+                              className={`px-2 py-1 rounded-lg text-4xs font-extrabold truncate border transition-all ${
+                                task.status === 'Completed'
+                                  ? 'bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/15'
+                                  : task.priority === 'High'
+                                  ? 'bg-rose-500/5 text-rose-600 dark:text-rose-450 border-rose-500/15'
+                                  : 'bg-amber-500/5 text-amber-600 dark:text-amber-450 border-amber-500/15'
+                              }`}
+                              title={`${task.title} [${task.status}]`}
+                            >
+                              {task.title}
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
 
@@ -219,7 +258,7 @@ const Calendar = () => {
           <div className="xl:col-span-1 flex flex-col gap-5">
             {/* Quick overview widget */}
             <div className="glass-card p-5 rounded-2xl space-y-4">
-              <h3 className="text-xs font-extrabold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2">
+              <h3 className="text-xs font-extrabold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 dark:border-slate-805 pb-3">
                 <ListTodo className="h-4.5 w-4.5 text-emerald-500" />
                 Upcoming Deadlines
               </h3>
@@ -227,14 +266,21 @@ const Calendar = () => {
               {upcomingTasks.length === 0 ? (
                 <div className="text-center py-6 text-slate-400 dark:text-slate-500">
                   <p className="text-xs font-bold">Clear Schedule</p>
-                  <p className="text-3xs mt-0.5 leading-relaxed">No upcoming deadlines found for this workspace.</p>
+                  <p className="text-[10px] mt-0.5 leading-relaxed">No upcoming deadlines found for this workspace.</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <motion.div 
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="show"
+                  className="space-y-3"
+                >
                   {upcomingTasks.map((task) => (
-                    <div
+                    <motion.div
+                      variants={itemVariants}
                       key={task._id}
-                      className="p-3 rounded-xl bg-white/40 dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/60 flex items-start gap-3 hover:border-emerald-500/20 transition-all duration-200"
+                      whileHover={{ y: -2 }}
+                      className="p-3 rounded-xl bg-white/40 dark:bg-slate-900/30 border border-slate-200/55 dark:border-slate-800/60 flex items-start gap-3 hover:border-emerald-500/25 transition-all duration-200"
                     >
                       <div className="mt-0.5">
                         {task.priority === 'High' ? (
@@ -244,26 +290,26 @@ const Calendar = () => {
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h4 className="text-xs font-bold text-slate-700 dark:text-slate-205 truncate">
+                        <h4 className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">
                           {task.title}
                         </h4>
-                        <p className="text-4xs text-slate-400 mt-1 flex items-center gap-1 font-semibold">
+                        <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-1 font-semibold">
                           <span>Due:</span>
                           <span className="text-slate-500 dark:text-slate-400">
                             {new Date(task.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                           </span>
                         </p>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               )}
             </div>
 
             {/* Quick tips panel */}
             <div className="glass-card p-5 rounded-2xl bg-gradient-to-br from-emerald-500/5 to-teal-500/5 border border-emerald-500/10">
               <h4 className="text-xs font-extrabold text-emerald-600 dark:text-emerald-450">Calendar Tips</h4>
-              <p className="text-3xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed font-medium">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 leading-relaxed font-medium">
                 Deadlines added directly to Kanban tasks appear here automatically. Completed tasks are colored green, and high-priority milestones feature rose/red borders to ensure visibility.
               </p>
             </div>
@@ -271,9 +317,8 @@ const Calendar = () => {
 
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
 export default Calendar;
-

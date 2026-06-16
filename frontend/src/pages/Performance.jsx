@@ -6,12 +6,12 @@ import {
   CheckCircle2,
   TrendingUp,
   Loader2,
-  ShieldAlert,
   Award,
   Sparkles,
   Clock,
   CheckSquare
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { fetchTasks } from '../redux/slices/taskSlice';
 
 const Performance = () => {
@@ -63,8 +63,29 @@ const Performance = () => {
   // Solver Participation Rate (Members who solved at least 1 task)
   const uniqueSolversCount = Object.keys(solverCounts).length;
 
+  // Framer Motion Variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 12 },
+    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 350, damping: 25 } }
+  };
+
   return (
-    <div className="space-y-6 h-full flex flex-col">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-6 h-full flex flex-col"
+    >
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-2 gap-4">
         <div className="flex items-center gap-3">
@@ -75,7 +96,7 @@ const Performance = () => {
             <h1 className="font-heading text-xl md:text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight leading-tight">
               Workspace Leaderboard
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs text-slate-505 dark:text-slate-400 mt-1">
               Track team contributions, tickets resolved, and contribution statistics.
             </p>
           </div>
@@ -91,7 +112,10 @@ const Performance = () => {
           {/* Overview Metrics Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Cards 1: Total Solved */}
-            <div className="glass-card p-4 rounded-2xl flex items-center gap-3.5">
+            <motion.div 
+              whileHover={{ y: -3, shadow: 'rgba(0,0,0,0.06) 0px 10px 20px -5px' }}
+              className="glass-card p-4 rounded-2xl flex items-center gap-3.5 transition-all"
+            >
               <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
                 <CheckCircle2 className="h-5 w-5" />
               </div>
@@ -99,10 +123,13 @@ const Performance = () => {
                 <p className="text-4xs font-extrabold uppercase tracking-wider text-slate-400">Total Solved</p>
                 <h4 className="text-sm font-extrabold text-slate-800 dark:text-white mt-0.5">{totalCompleted} issues</h4>
               </div>
-            </div>
+            </motion.div>
 
             {/* Cards 2: Top Solver */}
-            <div className="glass-card p-4 rounded-2xl flex items-center gap-3.5">
+            <motion.div 
+              whileHover={{ y: -3, shadow: 'rgba(0,0,0,0.06) 0px 10px 20px -5px' }}
+              className="glass-card p-4 rounded-2xl flex items-center gap-3.5 transition-all"
+            >
               <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
                 <Award className="h-5 w-5" />
               </div>
@@ -112,10 +139,13 @@ const Performance = () => {
                   {topSolver ? topSolver.name : 'None yet'}
                 </h4>
               </div>
-            </div>
+            </motion.div>
 
             {/* Cards 3: Pending Issues */}
-            <div className="glass-card p-4 rounded-2xl flex items-center gap-3.5">
+            <motion.div 
+              whileHover={{ y: -3, shadow: 'rgba(0,0,0,0.06) 0px 10px 20px -5px' }}
+              className="glass-card p-4 rounded-2xl flex items-center gap-3.5 transition-all"
+            >
               <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 shrink-0">
                 <Clock className="h-5 w-5" />
               </div>
@@ -123,10 +153,13 @@ const Performance = () => {
                 <p className="text-4xs font-extrabold uppercase tracking-wider text-slate-400">Pending Issues</p>
                 <h4 className="text-sm font-extrabold text-slate-800 dark:text-white mt-0.5">{pendingTasks} tickets</h4>
               </div>
-            </div>
+            </motion.div>
 
             {/* Cards 4: Participation */}
-            <div className="glass-card p-4 rounded-2xl flex items-center gap-3.5">
+            <motion.div 
+              whileHover={{ y: -3, shadow: 'rgba(0,0,0,0.06) 0px 10px 20px -5px' }}
+              className="glass-card p-4 rounded-2xl flex items-center gap-3.5 transition-all"
+            >
               <div className="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 shrink-0">
                 <Users className="h-5 w-5" />
               </div>
@@ -134,14 +167,14 @@ const Performance = () => {
                 <p className="text-4xs font-extrabold uppercase tracking-wider text-slate-400">Active Solvers</p>
                 <h4 className="text-sm font-extrabold text-slate-800 dark:text-white mt-0.5">{uniqueSolversCount} members</h4>
               </div>
-            </div>
+            </motion.div>
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-stretch flex-1">
             {/* Leaderboard Chart (Colspan 2) */}
-            <div className="xl:col-span-2 glass-card p-6 rounded-2xl flex flex-col">
+            <div className="xl:col-span-2 glass-card p-6 rounded-2xl flex flex-col shadow-sm">
               <div className="flex items-center justify-between border-b border-slate-200/40 dark:border-slate-800/60 pb-4 mb-5">
-                <h3 className="font-heading font-extrabold text-sm text-slate-850 dark:text-white flex items-center gap-2">
+                <h3 className="font-heading font-extrabold text-sm text-slate-800 dark:text-white flex items-center gap-2">
                   <TrendingUp className="h-4.5 w-4.5 text-emerald-500" />
                   Performance Leaderboard
                 </h3>
@@ -150,79 +183,101 @@ const Performance = () => {
                 </span>
               </div>
 
-              <div className="flex-1 overflow-y-auto space-y-5 pr-1 scrollbar-premium">
-                {topSolvers.length === 0 ? (
-                  <div className="flex h-full flex-col items-center justify-center text-center text-slate-400 py-16">
-                    <div className="flex h-16 w-16 bg-slate-50 dark:bg-slate-900 rounded-full items-center justify-center text-slate-350 dark:text-slate-800 border border-slate-100 dark:border-slate-800 shadow-inner mb-4">
-                      <Trophy className="h-8 w-8 text-slate-400" />
-                    </div>
-                    <h4 className="text-base font-extrabold text-slate-800 dark:text-slate-200">No Contribution Data</h4>
-                    <p className="text-xs text-slate-500 mt-1 max-w-sm leading-relaxed">
-                      Issues and tasks resolved in the Kanban board will appear here, charting developer velocity and top contributors.
-                    </p>
-                  </div>
-                ) : (
-                  topSolvers.map((solver, index) => {
-                    const percentageOfMax = Math.round((solver.count / maxSolved) * 100);
-                    const percentageOfTotal = Math.round((solver.count / totalCompleted) * 100);
-
-                    return (
-                      <div key={solver.id} className="flex items-start gap-4 p-3.5 rounded-2xl bg-white/40 dark:bg-slate-950/15 border border-slate-200/40 dark:border-slate-800/50 hover:border-emerald-500/20 transition-all duration-200 group">
-                        
-                        {/* Rank Badge */}
-                        <div className="shrink-0 flex flex-col items-center justify-center w-8">
-                          {index === 0 ? (
-                            <span className="text-2xl" title="First Place Gold">🥇</span>
-                          ) : index === 1 ? (
-                            <span className="text-2xl" title="Second Place Silver">🥈</span>
-                          ) : index === 2 ? (
-                            <span className="text-2xl" title="Third Place Bronze">🥉</span>
-                          ) : (
-                            <span className="text-sm font-black text-slate-400 dark:text-slate-600">
-                              #{index + 1}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Solver Avatar */}
-                        <img
-                          src={solver.avatar}
-                          alt={solver.name}
-                          className="h-10 w-10 rounded-full object-cover shadow-sm ring-2 ring-white dark:ring-slate-900 shrink-0"
-                        />
-
-                        {/* Solver Performance Graph details */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
-                            <div>
-                              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-500 transition-colors">
-                                {solver.name}
-                              </h4>
-                              <p className="text-4xs text-slate-450 dark:text-slate-500 font-semibold">{solver.email}</p>
-                            </div>
-                            <div className="text-left sm:text-right shrink-0">
-                              <span className="text-xs font-black text-emerald-500 block">
-                                {solver.count} resolved issue{solver.count !== 1 ? 's' : ''}
-                              </span>
-                              <span className="text-4xs font-bold text-slate-400">
-                                {percentageOfTotal}% of total resolved
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Relative contribution percentage bar */}
-                          <div className="w-full bg-slate-100 dark:bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-200/40 dark:border-slate-855">
-                            <div
-                              className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full transition-all duration-500 shadow-xs"
-                              style={{ width: `${percentageOfMax}%` }}
-                            ></div>
-                          </div>
-                        </div>
-
+              <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-premium">
+                <AnimatePresence mode="wait">
+                  {topSolvers.length === 0 ? (
+                    <motion.div
+                      key="empty"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex h-full flex-col items-center justify-center text-center text-slate-400 py-16"
+                    >
+                      <div className="flex h-16 w-16 bg-slate-50 dark:bg-slate-900 rounded-full items-center justify-center text-slate-350 dark:text-slate-800 border border-slate-100 dark:border-slate-800 shadow-inner mb-4">
+                        <Trophy className="h-8 w-8 text-slate-400" />
                       </div>
-                    );
-                  })
-                )}
+                      <h4 className="text-base font-extrabold text-slate-800 dark:text-slate-200">No Contribution Data</h4>
+                      <p className="text-xs text-slate-500 mt-1 max-w-sm leading-relaxed">
+                        Issues and tasks resolved in the Kanban board will appear here, charting developer velocity and top contributors.
+                      </p>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="leaderboard-list"
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="show"
+                      className="space-y-4"
+                    >
+                      {topSolvers.map((solver, index) => {
+                        const percentageOfMax = Math.round((solver.count / maxSolved) * 100);
+                        const percentageOfTotal = Math.round((solver.count / totalCompleted) * 100);
+
+                        return (
+                          <motion.div
+                            variants={itemVariants}
+                            key={solver.id}
+                            whileHover={{ scale: 1.008 }}
+                            className="flex items-start gap-4 p-3.5 rounded-2xl bg-white/40 dark:bg-slate-950/15 border border-slate-200/40 dark:border-slate-800/50 hover:border-emerald-500/20 transition-all duration-200 group"
+                          >
+                            {/* Rank Badge */}
+                            <div className="shrink-0 flex flex-col items-center justify-center w-8">
+                              {index === 0 ? (
+                                <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.1 }} className="text-2xl" title="First Place Gold">🥇</motion.span>
+                              ) : index === 1 ? (
+                                <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.15 }} className="text-2xl" title="Second Place Silver">🥈</motion.span>
+                              ) : index === 2 ? (
+                                <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.2 }} className="text-2xl" title="Third Place Bronze">🥉</motion.span>
+                              ) : (
+                                <span className="text-sm font-black text-slate-400 dark:text-slate-600">
+                                  #{index + 1}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Solver Avatar */}
+                            <img
+                              src={solver.avatar}
+                              alt={solver.name}
+                              className="h-10 w-10 rounded-full object-cover shadow-sm ring-2 ring-white dark:ring-slate-900 shrink-0"
+                            />
+
+                            {/* Solver Performance Graph details */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
+                                <div>
+                                  <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-emerald-500 transition-colors">
+                                    {solver.name}
+                                  </h4>
+                                  <p className="text-4xs text-slate-450 dark:text-slate-500 font-semibold">{solver.email}</p>
+                                </div>
+                                <div className="text-left sm:text-right shrink-0">
+                                  <span className="text-xs font-black text-emerald-500 block">
+                                    {solver.count} resolved issue{solver.count !== 1 ? 's' : ''}
+                                  </span>
+                                  <span className="text-4xs font-bold text-slate-400 font-semibold">
+                                    {percentageOfTotal}% of total resolved
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Relative contribution percentage bar */}
+                              <div className="w-full bg-slate-100 dark:bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-200/40 dark:border-slate-855">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${percentageOfMax}%` }}
+                                  transition={{ type: 'spring', stiffness: 80, damping: 15, delay: index * 0.05 }}
+                                  className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full shadow-xs"
+                                ></motion.div>
+                              </div>
+                            </div>
+
+                          </motion.div>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
 
@@ -230,56 +285,65 @@ const Performance = () => {
             <div className="xl:col-span-1 flex flex-col gap-6">
               
               {/* Task Breakdown Stats */}
-              <div className="glass-card p-6 rounded-2xl flex flex-col">
-                <h3 className="font-heading font-extrabold text-xs text-slate-800 dark:text-white uppercase tracking-wider border-b border-slate-200/40 dark:border-slate-800/60 pb-3 mb-4 flex items-center gap-2">
+              <div className="glass-card p-6 rounded-2xl flex flex-col shadow-sm">
+                <h3 className="font-heading font-extrabold text-xs text-slate-800 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-slate-805 pb-3 mb-4 flex items-center gap-2">
                   <CheckSquare className="h-4.5 w-4.5 text-emerald-500" />
                   Category Breakdown
                 </h3>
 
                 <div className="space-y-4">
                   {/* High Priority */}
-                  <div className="p-3.5 rounded-xl bg-slate-50/40 dark:bg-slate-950/20 border border-slate-200/40 dark:border-slate-800/60 flex items-center justify-between">
+                  <motion.div 
+                    whileHover={{ scale: 1.02 }}
+                    className="p-3.5 rounded-xl bg-slate-50/40 dark:bg-slate-955/20 border border-slate-200/40 dark:border-slate-800/60 flex items-center justify-between transition-all"
+                  >
                     <div className="flex items-center gap-2.5">
                       <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
-                      <span className="text-xs font-bold text-slate-750 dark:text-slate-350">High Priority</span>
+                      <span className="text-xs font-bold text-slate-705 dark:text-slate-350">High Priority</span>
                     </div>
                     <span className="px-2.5 py-0.5 text-xs font-black bg-rose-500/10 text-rose-500 border border-rose-500/15 rounded-lg">
                       {highPrioritySolved}
                     </span>
-                  </div>
+                  </motion.div>
 
                   {/* Medium Priority */}
-                  <div className="p-3.5 rounded-xl bg-slate-50/40 dark:bg-slate-950/20 border border-slate-200/40 dark:border-slate-800/60 flex items-center justify-between">
+                  <motion.div 
+                    whileHover={{ scale: 1.02 }}
+                    className="p-3.5 rounded-xl bg-slate-50/40 dark:bg-slate-955/20 border border-slate-200/40 dark:border-slate-800/60 flex items-center justify-between transition-all"
+                  >
                     <div className="flex items-center gap-2.5">
                       <span className="h-2 w-2 rounded-full bg-amber-500"></span>
-                      <span className="text-xs font-bold text-slate-750 dark:text-slate-350">Medium Priority</span>
+                      <span className="text-xs font-bold text-slate-705 dark:text-slate-350">Medium Priority</span>
                     </div>
                     <span className="px-2.5 py-0.5 text-xs font-black bg-amber-500/10 text-amber-500 border border-amber-500/15 rounded-lg">
                       {mediumPrioritySolved}
                     </span>
-                  </div>
+                  </motion.div>
 
                   {/* Normal Priority */}
-                  <div className="p-3.5 rounded-xl bg-slate-50/40 dark:bg-slate-950/20 border border-slate-200/40 dark:border-slate-800/60 flex items-center justify-between">
+                  <motion.div 
+                    whileHover={{ scale: 1.02 }}
+                    className="p-3.5 rounded-xl bg-slate-50/40 dark:bg-slate-955/20 border border-slate-200/40 dark:border-slate-800/60 flex items-center justify-between transition-all"
+                  >
                     <div className="flex items-center gap-2.5">
                       <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-                      <span className="text-xs font-bold text-slate-750 dark:text-slate-350">Normal/Low</span>
+                      <span className="text-xs font-bold text-slate-705 dark:text-slate-350">Normal/Low</span>
                     </div>
                     <span className="px-2.5 py-0.5 text-xs font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/15 rounded-lg">
                       {normalPrioritySolved}
                     </span>
-                  </div>
+                  </motion.div>
                 </div>
               </div>
 
               {/* Leaderboard Onboarding explanation */}
-              <div className="glass-card p-6 rounded-2xl bg-gradient-to-br from-amber-500/5 via-teal-500/5 to-emerald-500/5 border border-emerald-500/10 flex flex-col justify-between">
+              <div className="glass-card p-6 rounded-2xl bg-gradient-to-br from-amber-500/5 via-teal-500/5 to-emerald-500/5 border border-emerald-500/10 flex flex-col justify-between shadow-2xs">
                 <div>
                   <h4 className="text-xs font-extrabold text-emerald-600 dark:text-emerald-450 flex items-center gap-1.5">
-                    <Sparkles className="h-4 w-4 text-emerald-500 animate-spin" style={{ animationDuration: '3s' }} />
+                    <Sparkles className="h-4 w-4 text-emerald-500 animate-spin" style={{ animationDuration: '4s' }} />
                     How to level up?
                   </h4>
-                  <p className="text-3xs text-slate-500 dark:text-slate-400 mt-2.5 leading-relaxed font-medium">
+                  <p className="text-[10px] text-slate-505 dark:text-slate-400 mt-2.5 leading-relaxed font-medium">
                     Points and ranks are computed directly based on finished tickets. Ensure tasks are successfully dragged into the **"Completed"** column on the Kanban board to sync solver performance logs dynamically.
                   </p>
                 </div>
@@ -289,7 +353,7 @@ const Performance = () => {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus,
   Loader2,
@@ -661,19 +662,24 @@ const Tasks = () => {
                     </div>
 
                     {/* Cards */}
-                    <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-premium">
-                      {columnTasks.length === 0 ? (
+                    <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-premium">                      {columnTasks.length === 0 ? (
                         <div className="flex h-36 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 text-center text-slate-400 p-4 text-xs font-semibold bg-white/20 dark:bg-slate-950/5">
                           No active tasks.
                         </div>
                       ) : (
                         columnTasks.map((task) => (
-                          <div
+                          <motion.div
+                            layout
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                            whileHover={{ y: -2, boxHeading: "0 10px 25px -5px rgba(16, 185, 129, 0.08)" }}
                             key={task._id}
                             draggable
                             onDragStart={(e) => handleDragStart(e, task._id)}
                             onClick={() => openDetailsModal(task)}
-                            className={`rounded-xl border border-slate-200/70 bg-white dark:bg-slate-900 dark:border-slate-850/80 p-4 shadow-sm hover:shadow-md cursor-grab active:cursor-grabbing hover:border-emerald-300 dark:hover:border-emerald-800 transition-all duration-200 hover:-translate-y-0.5 ${
+                            className={`rounded-xl border border-slate-200/70 bg-white dark:bg-slate-900 dark:border-slate-850/80 p-4 shadow-sm cursor-grab active:cursor-grabbing hover:border-emerald-300 dark:hover:border-emerald-800 transition-all duration-200 ${
                               task.priority === 'High'
                                 ? 'border-l-4 border-l-red-500'
                                 : task.priority === 'Medium'
@@ -692,7 +698,7 @@ const Tasks = () => {
                                 {task.priority}
                               </span>
                               <div className="flex items-center gap-2">
-                                <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-extrabold text-slate-500 dark:text-slate-400">
+                                <span className="px-1.5 py-0.5 rounded bg-slate-105 dark:bg-slate-800 text-[10px] font-extrabold text-slate-500 dark:text-slate-400">
                                   {task.storyPoints || 1} SP
                                 </span>
                                 {task.dueDate && (
@@ -712,7 +718,7 @@ const Tasks = () => {
                               {task.description || 'No description provided'}
                             </p>
 
-                            <div className="mt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-850 pt-3">
+                            <div className="mt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-855 pt-3">
                               <div className="flex items-center gap-1 text-3xs text-slate-400 dark:text-slate-500 font-bold">
                                 <MessageCircle className="h-3.5 w-3.5 text-emerald-500" />
                                 <span>{task.comments?.length || 0} Comments</span>
@@ -732,7 +738,7 @@ const Tasks = () => {
                                 </span>
                               )}
                             </div>
-                          </div>
+                          </motion.div>
                         ))
                       )}
                     </div>
@@ -1271,7 +1277,7 @@ const Tasks = () => {
                   placeholder="Write a comment..."
                   value={newCommentText}
                   onChange={(e) => setNewCommentText(e.target.value)}
-                  className="flex-1 rounded-lg border border-slate-205 dark:border-slate-800 bg-white dark:bg-slate-950 px-3.5 py-2 text-xs text-slate-850 dark:text-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 premium-input"
+                  className="flex-1 rounded-lg border border-slate-205 dark:border-slate-800 bg-white dark:bg-slate-950 px-3.5 py-2 text-xs text-slate-800 dark:text-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 premium-input"
                   required
                 />
                 <button

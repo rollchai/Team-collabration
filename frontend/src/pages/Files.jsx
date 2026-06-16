@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import API from '../services/api';
 import { toast } from 'react-toastify';
+import { motion } from 'framer-motion';
 
 const Files = () => {
   const { currentWorkspace } = useSelector((state) => state.workspace);
@@ -133,8 +134,28 @@ const Files = () => {
     );
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.04
+      }
+    }
+  };
+
+  const rowVariants = {
+    hidden: { opacity: 0, y: 10 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 350, damping: 25 } }
+  };
+
   return (
-    <div className="space-y-6 h-full flex flex-col">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-6 h-full flex flex-col"
+    >
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-2 gap-4">
         <div>
@@ -163,10 +184,12 @@ const Files = () => {
           </div>
 
           {/* Upload Button */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => fileInputRef.current.click()}
             disabled={uploading}
-            className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 px-4.5 py-2 text-xs font-extrabold text-white shadow-md shadow-emerald-500/10 cursor-pointer disabled:opacity-55 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shrink-0"
+            className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 px-4.5 py-2 text-xs font-extrabold text-white shadow-md shadow-emerald-500/10 cursor-pointer disabled:opacity-55 transition-all duration-200 shrink-0"
           >
             {uploading ? (
               <Loader2 className="h-4.5 w-4.5 animate-spin" />
@@ -174,7 +197,7 @@ const Files = () => {
               <Upload className="h-4.5 w-4.5" />
             )}
             Upload File
-          </button>
+          </motion.button>
           <input
             type="file"
             ref={fileInputRef}
@@ -241,8 +264,8 @@ const Files = () => {
           <div className="h-16 w-16 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center text-slate-400 dark:text-slate-600 mb-4 border border-slate-100 dark:border-slate-800 shadow-inner">
             <FolderOpen className="h-8 w-8 text-emerald-500" />
           </div>
-          <h3 className="text-base font-extrabold text-slate-850 dark:text-slate-200">No assets in workspace</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-450 max-w-sm mt-1 leading-relaxed">
+          <h3 className="text-base font-extrabold text-slate-800">No assets in workspace</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-455 max-w-sm mt-1 leading-relaxed">
             {searchQuery 
               ? `We couldn't find any files matching "${searchQuery}". Try a different keyword.` 
               : 'Upload project templates, specification documents, or screenshots to share them instantly with your teammates.'}
@@ -272,9 +295,15 @@ const Files = () => {
               </thead>
 
               {/* Table Rows */}
-              <tbody className="divide-y divide-slate-100/50 dark:divide-slate-850/60 bg-transparent">
+              <motion.tbody 
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                className="divide-y divide-slate-100/50 dark:divide-slate-850/60 bg-transparent"
+              >
                 {filteredFiles.map((file) => (
-                  <tr
+                  <motion.tr
+                    variants={rowVariants}
                     key={file._id}
                     className="hover:bg-white/40 dark:hover:bg-slate-900/10 text-xs transition-colors duration-150 group"
                   >
@@ -303,7 +332,7 @@ const Files = () => {
                         <img
                           src={file.uploadedBy?.avatar}
                           alt={file.uploadedBy?.name}
-                          className="h-6 w-6 rounded-full object-cover ring-2 ring-white dark:ring-slate-950 shadow-2xs shrink-0"
+                          className="h-6 w-6 rounded-full object-cover ring-2 ring-white dark:ring-slate-955 shadow-2xs shrink-0"
                         />
                         <span className="font-semibold text-slate-655 dark:text-slate-300 truncate max-w-[120px]">
                           {file.uploadedBy?.name}
@@ -313,28 +342,29 @@ const Files = () => {
 
                     {/* Actions */}
                     <td className="px-6 py-3.5 whitespace-nowrap text-right">
-                      <a
+                      <motion.a
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         href={file.url}
                         download={file.name}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 hover:border-emerald-500/35 hover:bg-emerald-50/20 px-3 py-1.5 text-3xs font-extrabold text-slate-600 dark:border-slate-800 dark:hover:bg-emerald-950/20 text-slate-500 dark:text-slate-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 hover:border-emerald-500/35 hover:bg-emerald-50/20 px-3 py-1.5 text-3xs font-extrabold text-slate-600 dark:border-slate-805 dark:hover:bg-emerald-950/20 text-slate-500 dark:text-slate-400 hover:text-emerald-500 dark:hover:text-emerald-450 transition-all cursor-pointer shadow-2xs"
                         title="Download/Open File"
                       >
                         <Download className="h-3.5 w-3.5" />
                         Download
-                      </a>
+                      </motion.a>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
-              </tbody>
+              </motion.tbody>
             </table>
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
 export default Files;
-

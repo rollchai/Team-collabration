@@ -24,6 +24,7 @@ import { fetchTasks } from '../redux/slices/taskSlice';
 import { setCurrentWorkspace } from '../redux/slices/workspaceSlice';
 import API from '../services/api';
 import { toast } from 'react-toastify';
+import { motion } from 'framer-motion';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -121,12 +122,32 @@ const Dashboard = () => {
     return (bytes / 1024).toFixed(1) + ' KB';
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 350, damping: 25 } }
+  };
+
   return (
-    <div className="space-y-6">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-6"
+    >
       {/* Notion-Style Workspace Cover & Avatar Header */}
-      <div className="rounded-3xl border border-slate-200/50 dark:border-slate-805 bg-white dark:bg-slate-900 overflow-hidden shadow-sm relative transition-all duration-300">
+      <div className="rounded-3xl border border-slate-200/50 dark:border-slate-800/80 bg-white dark:bg-[#0b0f19] overflow-hidden shadow-sm relative transition-all duration-300">
         {/* Cover Canvas */}
-        <div className="h-32 w-full bg-gradient-to-r from-emerald-500/20 via-teal-500/15 to-emerald-600/5 dark:from-emerald-950/20 dark:to-slate-900/10 border-b border-slate-150 dark:border-slate-800/40 relative overflow-hidden">
+        <div className="h-32 w-full bg-gradient-to-r from-emerald-500/20 via-teal-500/15 to-emerald-600/5 dark:from-[#0a1e1b] dark:to-slate-900/10 border-b border-slate-150 dark:border-slate-800/40 relative overflow-hidden">
           <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
           {/* Neon Glow Spotlight */}
           <div className="absolute -left-12 -top-12 h-36 w-36 rounded-full bg-emerald-400/10 blur-2xl"></div>
@@ -136,9 +157,14 @@ const Dashboard = () => {
         {/* Floating Avatar & Details container */}
         <div className="px-6 pb-6 pt-12 relative">
           {/* Floating Icon Avatar */}
-          <div className="h-20 w-20 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white font-extrabold text-3xl shadow-xl border-4 border-white dark:border-slate-900 flex items-center justify-center absolute -top-10 left-6 z-10 select-none">
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 18, delay: 0.1 }}
+            className="h-20 w-20 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white font-extrabold text-3xl shadow-xl border-4 border-white dark:border-slate-900 flex items-center justify-center absolute -top-10 left-6 z-10 select-none"
+          >
             {currentWorkspace?.name?.charAt(0).toUpperCase() || 'S'}
-          </div>
+          </motion.div>
 
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div className="space-y-1">
@@ -168,15 +194,15 @@ const Dashboard = () => {
                   />
                 ))}
                 {members.length > 5 && (
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-3xs font-bold text-slate-505 border-2 border-white dark:border-slate-900 shadow-sm">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-3xs font-bold text-slate-550 border-2 border-white dark:border-slate-900 shadow-sm">
                     +{members.length - 5}
                   </span>
                 )}
               </div>
               <div className="text-left leading-tight">
-                <p className="text-xs font-bold text-slate-700 dark:text-slate-350">{members.length} member{members.length !== 1 ? 's' : ''}</p>
-                <p className="text-4xs text-emerald-500 font-bold flex items-center gap-0.5 animate-pulse">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> {onlineMembers.length} active now
+                <p className="text-xs font-bold text-slate-700 dark:text-slate-305">{members.length} member{members.length !== 1 ? 's' : ''}</p>
+                <p className="text-4xs text-emerald-500 font-bold flex items-center gap-0.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span> {onlineMembers.length} active now
                 </p>
               </div>
             </div>
@@ -187,13 +213,18 @@ const Dashboard = () => {
       {/* Metrics & Progress Dashboard Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Task Progress Glass Card */}
-        <div className="lg:col-span-2 glass-card p-6 flex flex-col justify-between shadow-sm">
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+          className="lg:col-span-2 glass-card p-6 flex flex-col justify-between shadow-sm"
+        >
           <div>
-            <h3 className="font-heading font-extrabold text-sm text-slate-850 dark:text-white flex items-center gap-2">
+            <h3 className="font-heading font-extrabold text-sm text-slate-800 dark:text-white flex items-center gap-2">
               <Activity className="h-4.5 w-4.5 text-emerald-500" />
               Workspace Productivity Progress
             </h3>
-            <p className="text-3xs text-slate-450 mt-0.5 font-medium">Calculation of completed tasks across all workspace columns.</p>
+            <p className="text-3xs text-slate-400 dark:text-slate-500 mt-0.5 font-semibold">Calculation of completed tasks across all workspace columns.</p>
           </div>
 
           <div className="my-4 space-y-2.5">
@@ -203,10 +234,12 @@ const Dashboard = () => {
             </div>
             {/* Glowing progress bar */}
             <div className="w-full bg-slate-100 dark:bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-200/40 dark:border-slate-850/50">
-              <div
-                className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full transition-all duration-500 shadow-md shadow-emerald-500/20 pulse-glow"
-                style={{ width: `${taskProgress}%` }}
-              ></div>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${taskProgress}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full shadow-md shadow-emerald-500/20"
+              ></motion.div>
             </div>
           </div>
 
@@ -214,49 +247,66 @@ const Dashboard = () => {
             <span>{completedTasks} completed</span>
             <span>{todoTasks + inProgressTasks} pending</span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Mini Stats Card Grid */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="glass-card glass-card-hover p-4 flex flex-col justify-between">
+          <motion.div 
+            whileHover={{ y: -4 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.35, delay: 0.2 }}
+            className="glass-card p-4 flex flex-col justify-between"
+          >
             <span className="text-3xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1">To Do</span>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-black text-slate-800 dark:text-white leading-none">{todoTasks}</span>
               <span className="h-2 w-2 rounded-full bg-blue-500"></span>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="glass-card glass-card-hover p-4 flex flex-col justify-between">
+          <motion.div 
+            whileHover={{ y: -4 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.35, delay: 0.25 }}
+            className="glass-card p-4 flex flex-col justify-between"
+          >
             <span className="text-3xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1">In Progress</span>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-black text-slate-800 dark:text-white leading-none">{inProgressTasks}</span>
-              <span className="h-2 w-2 rounded-full bg-amber-500"></span>
+              <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 
       {/* Main Grid Content Panels */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-1 gap-6 lg:grid-cols-3"
+      >
         
         {/* Left Double-Col Column: Tasks & Files Feed */}
         <div className="lg:col-span-2 space-y-6">
           {/* Assigned to Me tasks feed */}
-          <div className="glass-card p-6 flex flex-col h-[350px]">
-            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-slate-850 pb-3.5 mb-4">
-              <h3 className="font-heading font-extrabold text-sm text-slate-850 dark:text-slate-100 flex items-center gap-2">
+          <motion.div variants={itemVariants} className="glass-card p-6 flex flex-col h-[350px]">
+            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800/80 pb-3.5 mb-4">
+              <h3 className="font-heading font-extrabold text-sm text-slate-800 flex items-center gap-2">
                 <ListTodo className="h-4.5 w-4.5 text-emerald-500" />
                 My Assigned Tickets ({myTasks.length})
               </h3>
               <button
                 onClick={() => navigate(`/workspace/${currentWorkspace?.slug}/tasks`)}
-                className="text-xs font-extrabold text-emerald-500 hover:text-emerald-600 flex items-center gap-0.5 hover:underline"
+                className="text-xs font-extrabold text-emerald-500 hover:text-emerald-600 flex items-center gap-0.5 hover:underline transition-all"
               >
                 Open Board <ChevronRight className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-2.5 scrollbar-premium">
+            <div className="flex-1 overflow-y-auto space-y-2.5 scrollbar-premium pr-1">
               {myTasks.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center text-slate-400">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-950 mb-3 text-slate-400 dark:text-slate-800 shadow-inner">
@@ -267,13 +317,14 @@ const Dashboard = () => {
                 </div>
               ) : (
                 myTasks.map((t) => (
-                  <div
+                  <motion.div
+                    whileHover={{ x: 2 }}
                     key={t._id}
                     onClick={() => navigate(`/workspace/${currentWorkspace?.slug}/tasks`)}
                     className="flex items-center justify-between p-3 rounded-xl border border-slate-200/50 dark:border-slate-850 bg-white/40 dark:bg-slate-950/20 hover:border-emerald-300 dark:hover:border-emerald-800 hover:bg-white dark:hover:bg-slate-900 transition-all cursor-pointer hover:shadow-xs"
                   >
                     <div className="truncate pr-4">
-                      <h4 className="text-xs font-bold text-slate-750 dark:text-slate-250 truncate leading-snug">
+                      <h4 className="text-xs font-bold text-slate-755 dark:text-slate-250 truncate leading-snug">
                         {t.title}
                       </h4>
                       <span className="text-4xs text-slate-450 dark:text-slate-500 font-semibold mt-1.5 block">
@@ -287,56 +338,58 @@ const Dashboard = () => {
                         {t.priority}
                       </span>
                     </div>
-                  </div>
+                  </motion.div>
                 ))
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Recent Shared Assets/Files feed */}
-          <div className="glass-card p-6 flex flex-col h-[350px]">
-            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-slate-850 pb-3.5 mb-4">
-              <h3 className="font-heading font-extrabold text-sm text-slate-850 dark:text-slate-100 flex items-center gap-2">
+          <motion.div variants={itemVariants} className="glass-card p-6 flex flex-col h-[350px]">
+            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800/80 pb-3.5 mb-4">
+              <h3 className="font-heading font-extrabold text-sm text-slate-800 flex items-center gap-2">
                 <FolderOpen className="h-4.5 w-4.5 text-emerald-500" />
                 Recent Workspace Assets
               </h3>
               <button
                 onClick={() => navigate(`/workspace/${currentWorkspace?.slug}/files`)}
-                className="text-xs font-extrabold text-emerald-500 hover:text-emerald-600 flex items-center gap-0.5 hover:underline"
+                className="text-xs font-extrabold text-emerald-500 hover:text-emerald-600 flex items-center gap-0.5 hover:underline transition-all"
               >
                 Go to Vault <ChevronRight className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-2.5 scrollbar-premium">
+            <div className="flex-1 overflow-y-auto space-y-2.5 scrollbar-premium pr-1">
               {files.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center text-slate-400">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-950 mb-3 text-slate-400 dark:text-slate-800 shadow-inner">
                     <FolderOpen className="h-6 w-6" />
                   </div>
-                  <p className="text-xs font-bold text-slate-750 dark:text-slate-300">No assets shared</p>
+                  <p className="text-xs font-bold text-slate-755 dark:text-slate-300">No assets shared</p>
                   <p className="text-3xs text-slate-450 dark:text-slate-500 mt-0.5">Shared chat files and document listings will appear here.</p>
                 </div>
               ) : (
                 files.slice(0, 4).map((f) => (
                   <div
                     key={f._id}
-                    className="flex items-center justify-between p-3 rounded-xl border border-slate-200/50 dark:border-slate-850 bg-white/40 dark:bg-slate-950/20"
+                    className="flex items-center justify-between p-3 rounded-xl border border-slate-200/50 dark:border-slate-850 bg-white/40 dark:bg-slate-955/20"
                   >
                     <div className="truncate pr-4 flex items-center gap-3">
                       <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500 text-xs shadow-inner">
                         📄
                       </span>
                       <div className="truncate">
-                        <h4 className="text-xs font-bold text-slate-750 dark:text-slate-250 truncate leading-snug" title={f.name}>
+                        <h4 className="text-xs font-bold text-slate-755 dark:text-slate-250 truncate leading-snug" title={f.name}>
                           {f.name}
                         </h4>
-                        <span className="text-4xs text-slate-450 dark:text-slate-500 font-semibold mt-1 block">
+                        <span className="text-4xs text-slate-450 dark:text-slate-550 font-semibold mt-1 block">
                           Size: {formatKB(f.size)} • By {f.uploadedBy?.name || 'User'}
                         </span>
                       </div>
                     </div>
-                    <a
+                    <motion.a
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       href={f.url}
                       download={f.name}
                       target="_blank"
@@ -344,18 +397,18 @@ const Dashboard = () => {
                       className="rounded-lg p-1.5 hover:bg-slate-100 dark:hover:bg-slate-850 text-slate-400 hover:text-emerald-500 transition-colors shadow-2xs border border-slate-200/40 dark:border-slate-800 bg-white dark:bg-slate-900"
                     >
                       <Download className="h-4 w-4" />
-                    </a>
+                    </motion.a>
                   </div>
                 ))
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Member Performance Leaderboard */}
-          <div className="glass-card p-6 flex flex-col h-[350px]">
-            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-slate-850 pb-3.5 mb-4">
-              <h3 className="font-heading font-extrabold text-sm text-slate-850 dark:text-slate-100 flex items-center gap-2">
-                <Trophy className="h-4.5 w-4.5 text-amber-500 animate-bounce" />
+          <motion.div variants={itemVariants} className="glass-card p-6 flex flex-col h-[350px]">
+            <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800/80 pb-3.5 mb-4">
+              <h3 className="font-heading font-extrabold text-sm text-slate-800 flex items-center gap-2">
+                <Trophy className="h-4.5 w-4.5 text-amber-500" />
                 Team Solver Leaderboard
               </h3>
               <span className="text-4xs font-extrabold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
@@ -367,9 +420,9 @@ const Dashboard = () => {
               {topSolvers.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center text-slate-400 py-10">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-950 mb-3 text-slate-400 dark:text-slate-800 shadow-inner">
-                    <BarChart3 className="h-6 w-6 text-slate-405" />
+                    <BarChart3 className="h-6 w-6 text-slate-400" />
                   </div>
-                  <p className="text-xs font-bold text-slate-750 dark:text-slate-300">No data available</p>
+                  <p className="text-xs font-bold text-slate-755 dark:text-slate-300">No data available</p>
                   <p className="text-3xs text-slate-455 dark:text-slate-500 mt-0.5 max-w-[280px]">Resolve issue tasks on the Kanban board to populate member performance graphs.</p>
                 </div>
               ) : (
@@ -388,21 +441,23 @@ const Dashboard = () => {
                       <img
                         src={solver.avatar}
                         alt={solver.name}
-                        className="h-7 w-7 rounded-full object-cover border border-slate-100 dark:border-slate-800 shadow-2xs"
+                        className="h-7 w-7 rounded-full object-cover border border-slate-105 dark:border-slate-800 shadow-2xs"
                       />
                       
                       {/* Solver Name & Bar Details */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-center text-3xs font-extrabold text-slate-700 dark:text-slate-205 mb-1">
+                        <div className="flex justify-between items-center text-3xs font-extrabold text-slate-705 dark:text-slate-200 mb-1">
                           <span className="truncate">{solver.name}</span>
                           <span className="text-emerald-500 shrink-0 font-black">{solver.count} ticket{solver.count !== 1 ? 's' : ''} solved</span>
                         </div>
                         {/* Horizontal Bar Chart representation */}
-                        <div className="w-full bg-slate-100 dark:bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-200/40 dark:border-slate-855">
-                          <div
-                            className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full transition-all duration-500 shadow-sm shadow-emerald-500/10"
-                            style={{ width: `${percentage}%` }}
-                          ></div>
+                        <div className="w-full bg-slate-105 dark:bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-200/40 dark:border-slate-850">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${percentage}%` }}
+                            transition={{ duration: 0.6, delay: index * 0.05 }}
+                            className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full shadow-sm shadow-emerald-500/10"
+                          ></motion.div>
                         </div>
                       </div>
                     </div>
@@ -410,59 +465,59 @@ const Dashboard = () => {
                 })
               )}
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Right Single-Col Column: Quick Shortcuts, Online status & Chat Preview */}
         <div className="space-y-6">
           {/* Quick shortcuts card */}
-          <div className="glass-card p-6">
-            <h3 className="font-heading font-extrabold text-sm text-slate-850 dark:text-slate-100 border-b border-slate-200/50 dark:border-slate-850 pb-3 mb-4">
+          <motion.div variants={itemVariants} className="glass-card p-6">
+            <h3 className="font-heading font-extrabold text-sm text-slate-800 border-b border-slate-200/50 dark:border-slate-800 pb-3 mb-4">
               Quick Navigation
             </h3>
             <div className="grid grid-cols-1 gap-2.5">
               <button
                 onClick={() => navigate(`/workspace/${currentWorkspace?.slug}/chat`)}
-                className="flex items-center gap-3 rounded-xl border border-slate-200/50 dark:border-slate-855 p-3 hover:bg-emerald-500/5 dark:hover:bg-emerald-500/10 text-left transition-all cursor-pointer group hover:translate-x-0.5"
+                className="flex items-center gap-3 rounded-xl border border-slate-200/50 dark:border-slate-850 p-3 hover:bg-emerald-500/5 dark:hover:bg-emerald-500/10 text-left transition-all cursor-pointer group hover:translate-x-0.5"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-500">
                   <MessageSquare className="h-5 w-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-750 dark:text-slate-200 group-hover:text-emerald-500 transition-colors leading-tight">
+                  <h4 className="text-xs font-bold text-slate-755 dark:text-slate-200 group-hover:text-emerald-500 transition-colors leading-tight">
                     Discuss in Chat
                   </h4>
-                  <p className="text-4xs text-slate-450 dark:text-slate-500 font-semibold mt-0.5">Participate in workspace channel DMs</p>
+                  <p className="text-4xs text-slate-450 dark:text-slate-550 font-semibold mt-0.5">Participate in workspace channel DMs</p>
                 </div>
               </button>
 
               <button
                 onClick={() => navigate(`/workspace/${currentWorkspace?.slug}/wiki`)}
-                className="flex items-center gap-3 rounded-xl border border-slate-200/50 dark:border-slate-855 p-3 hover:bg-emerald-500/5 dark:hover:bg-emerald-500/10 text-left transition-all cursor-pointer group hover:translate-x-0.5"
+                className="flex items-center gap-3 rounded-xl border border-slate-200/50 dark:border-slate-850 p-3 hover:bg-emerald-500/5 dark:hover:bg-emerald-500/10 text-left transition-all cursor-pointer group hover:translate-x-0.5"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-500">
                   <BookOpen className="h-5 w-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-750 dark:text-slate-200 group-hover:text-emerald-500 transition-colors leading-tight">
+                  <h4 className="text-xs font-bold text-slate-755 dark:text-slate-200 group-hover:text-emerald-500 transition-colors leading-tight">
                     Workspace Wiki
                   </h4>
-                  <p className="text-4xs text-slate-450 dark:text-slate-500 font-semibold mt-0.5">Explore files directory and knowledge base</p>
+                  <p className="text-4xs text-slate-450 dark:text-slate-550 font-semibold mt-0.5">Explore files directory and knowledge base</p>
                 </div>
               </button>
             </div>
-          </div>
+          </motion.div>
 
           {/* Teammates Active / Online presence */}
-          <div className="glass-card p-6 flex flex-col h-[280px]">
-            <h3 className="font-heading font-extrabold text-sm text-slate-850 dark:text-slate-100 border-b border-slate-200/50 dark:border-slate-850 pb-3 mb-4 flex items-center justify-between">
+          <motion.div variants={itemVariants} className="glass-card p-6 flex flex-col h-[280px]">
+            <h3 className="font-heading font-extrabold text-sm text-slate-800 border-b border-slate-200/50 dark:border-slate-800 pb-3 mb-4 flex items-center justify-between">
               <span>Teammates Online</span>
-              <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-4xs font-extrabold text-emerald-500 pulse-glow">
+              <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-4xs font-extrabold text-emerald-500">
                 {onlineMembers.length} ACTIVE
               </span>
             </h3>
 
-            <div className="flex-1 overflow-y-auto space-y-3 scrollbar-premium">
+            <div className="flex-1 overflow-y-auto space-y-3 scrollbar-premium pr-0.5">
               {onlineMembers.length === 0 ? (
                 <p className="text-center text-3xs text-slate-400 italic py-8">Everyone is offline right now.</p>
               ) : (
@@ -475,8 +530,8 @@ const Dashboard = () => {
                         className="h-7 w-7 rounded-full object-cover border border-slate-100 dark:border-slate-800"
                       />
                       <div className="truncate text-3xs">
-                        <h4 className="font-bold text-slate-700 dark:text-slate-200 truncate">{m.user?.name}</h4>
-                        <p className="text-slate-400 truncate w-32 font-medium mt-0.5">{m.user?.email}</p>
+                        <h4 className="font-bold text-slate-705 dark:text-slate-200 truncate">{m.user?.name}</h4>
+                        <p className="text-slate-450 truncate w-32 font-semibold mt-0.5">{m.user?.email}</p>
                       </div>
                     </div>
                     <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
@@ -484,11 +539,11 @@ const Dashboard = () => {
                 ))
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Recent discussion previews */}
-          <div className="glass-card p-6 flex flex-col h-[320px]">
-            <h3 className="font-heading font-extrabold text-sm text-slate-850 dark:text-slate-100 border-b border-slate-200/50 dark:border-slate-855 pb-3 mb-4">
+          <motion.div variants={itemVariants} className="glass-card p-6 flex flex-col h-[320px]">
+            <h3 className="font-heading font-extrabold text-sm text-slate-800 border-b border-slate-200/50 dark:border-slate-850 pb-3 mb-4">
               Discussion Feed Preview
             </h3>
 
@@ -507,21 +562,21 @@ const Dashboard = () => {
                       className="h-6.5 w-6.5 rounded-full object-cover border border-slate-100 dark:border-slate-800"
                     />
                     <div className="flex-1 bg-slate-50/50 dark:bg-slate-950/25 p-2 rounded-xl border border-slate-200/40 dark:border-slate-850 text-3xs leading-relaxed">
-                      <div className="flex justify-between font-bold text-slate-705 dark:text-slate-350 mb-0.5">
+                      <div className="flex justify-between font-bold text-slate-705 dark:text-slate-300 mb-0.5">
                         <span>{m.sender?.name}</span>
                         <span className="text-4xs text-slate-400 font-semibold">{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
-                      <p className="text-slate-600 dark:text-slate-400 truncate">{m.content}</p>
+                      <p className="text-slate-605 dark:text-slate-400 truncate">{m.content}</p>
                     </div>
                   </div>
                 ))
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Quick-Switch Other Workspaces list */}
-          <div className="glass-card p-6 flex flex-col h-[240px]">
-            <h3 className="font-heading font-extrabold text-sm text-slate-850 dark:text-slate-100 border-b border-slate-200/50 dark:border-slate-855 pb-3 mb-4">
+          <motion.div variants={itemVariants} className="glass-card p-6 flex flex-col h-[240px]">
+            <h3 className="font-heading font-extrabold text-sm text-slate-800 border-b border-slate-200/50 dark:border-slate-850 pb-3 mb-4">
               Switch Workspaces
             </h3>
 
@@ -532,30 +587,31 @@ const Dashboard = () => {
                 workspaces
                   .filter(w => w.workspace._id !== currentWorkspace?._id)
                   .map((w) => (
-                    <button
+                    <motion.button
+                      whileHover={{ x: 2 }}
                       key={w.workspace._id}
                       onClick={() => {
                         dispatch(setCurrentWorkspace(w.workspace));
                         navigate(`/workspace/${w.workspace.slug}/dashboard`);
                       }}
-                      className="flex w-full items-center justify-between p-2 rounded-xl bg-slate-50/40 hover:bg-emerald-500/5 dark:bg-slate-955/20 border border-slate-150 dark:border-slate-850/80 transition-all hover:translate-x-0.5 text-left text-3xs font-bold text-slate-700 dark:text-slate-300"
+                      className="flex w-full items-center justify-between p-2 rounded-xl bg-slate-50/40 hover:bg-emerald-500/5 dark:bg-slate-950/20 border border-slate-150 dark:border-slate-850/80 transition-all text-left text-3xs font-bold text-slate-700 dark:text-slate-300"
                     >
                       <div className="flex items-center gap-2.5 truncate">
-                        <span className="flex h-6 w-6 items-center justify-center rounded bg-slate-200/60 dark:bg-slate-950 font-black text-emerald-500">
+                        <span className="flex h-6 w-6 items-center justify-center rounded bg-slate-200/60 dark:bg-slate-955 font-black text-emerald-500">
                           {w.workspace.name.charAt(0).toUpperCase()}
                         </span>
                         <span className="truncate">{w.workspace.name}</span>
                       </div>
                       <ChevronRight className="h-3.5 w-3.5 text-slate-450" />
-                    </button>
+                    </motion.button>
                   ))
               )}
             </div>
-          </div>
+          </motion.div>
 
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

@@ -19,6 +19,7 @@ import {
   X,
   ExternalLink,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { socket } from '../layouts/DashboardLayout';
 import API from '../services/api';
 import { toast } from 'react-toastify';
@@ -93,7 +94,6 @@ const Wiki = () => {
       console.error(err);
       toast.error('Failed to load wiki attachments');
     } finally {
-      setAttachmentsLoading(true);
       setAttachmentsLoading(false);
     }
   };
@@ -433,6 +433,22 @@ const Wiki = () => {
     doc.title.toLowerCase().includes(docSearchQuery.toLowerCase())
   );
 
+  // Framer Motion Variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 12 },
+    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 350, damping: 25 } }
+  };
+
   return (
     <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-8.5rem)]">
       {/* LEFT MODULE CONTENT */}
@@ -440,56 +456,64 @@ const Wiki = () => {
         {/* Tab switcher header */}
         <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800 pb-3 gap-4 shrink-0">
           <div className="flex items-center gap-3">
-            <BookOpen className="h-6 w-6 text-emerald-500" />
-            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-0.5 rounded-xl border border-slate-200/50 dark:border-slate-850">
-              <button
-                onClick={() => setActiveTab('docs')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold cursor-pointer transition-all duration-200 ${
-                  activeTab === 'docs'
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-sm'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                }`}
-              >
-                Collab Docs
-              </button>
-              <button
-                onClick={() => setActiveTab('attachments')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold cursor-pointer transition-all duration-200 ${
-                  activeTab === 'attachments'
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-sm'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                }`}
-              >
-                Shared Assets
-              </button>
+            <BookOpen className="h-5.5 w-5.5 text-emerald-500" />
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200/50 dark:border-slate-850/80 relative">
+              {['docs', 'attachments'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`relative px-4 py-1.5 rounded-lg text-xs font-extrabold cursor-pointer z-10 transition-colors duration-300 ${
+                    activeTab === tab
+                      ? 'text-white'
+                      : 'text-slate-505 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                  }`}
+                >
+                  {tab === 'docs' ? 'Collab Docs' : 'Shared Assets'}
+                  {activeTab === tab && (
+                    <motion.div
+                      layoutId="activeTabBg"
+                      className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg -z-10 shadow-sm"
+                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Actions based on active tab */}
-          {activeTab === 'attachments' ? (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setLinkModalOpen(true)}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-850 px-3.5 py-2 text-xs font-bold text-slate-605 dark:text-slate-300 shadow-sm cursor-pointer transition-colors"
+          <div className="flex items-center gap-2">
+            {activeTab === 'attachments' ? (
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setLinkModalOpen(true)}
+                  className="flex items-center gap-1.5 rounded-xl border border-slate-200/60 dark:border-slate-800 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-850 px-3.5 py-2 text-xs font-extrabold text-slate-600 dark:text-slate-300 shadow-2xs cursor-pointer transition-colors"
+                >
+                  <Globe className="h-4 w-4 text-emerald-500" /> Attach Link
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setFileModalOpen(true)}
+                  className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-655 px-4 py-2 text-xs font-extrabold text-white shadow-md shadow-emerald-500/15 cursor-pointer transition-all duration-200"
+                >
+                  <Plus className="h-4 w-4" /> Upload File
+                </motion.button>
+              </>
+            ) : (
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleCreateDoc}
+                disabled={docsLoading}
+                className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-655 px-4 py-2 text-xs font-extrabold text-white shadow-md shadow-emerald-500/15 cursor-pointer transition-all duration-200"
               >
-                <Globe className="h-4 w-4 text-emerald-500" /> Attach Link
-              </button>
-              <button
-                onClick={() => setFileModalOpen(true)}
-                className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-650 px-4 py-2 text-xs font-bold text-white shadow-md shadow-emerald-500/15 cursor-pointer transition-all duration-200"
-              >
-                <Plus className="h-4 w-4" /> Upload File
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={handleCreateDoc}
-              disabled={docsLoading}
-              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-650 px-4 py-2 text-xs font-bold text-white shadow-md shadow-emerald-500/15 cursor-pointer transition-all duration-200"
-            >
-              <Plus className="h-4 w-4" /> New Wiki Page
-            </button>
-          )}
+                <Plus className="h-4 w-4" /> New Wiki Page
+              </motion.button>
+            )}
+          </div>
         </div>
 
         {/* Tab 1: Collaborative Wiki Docs */}
@@ -515,91 +539,121 @@ const Wiki = () => {
                     <Loader2 className="h-5 w-5 animate-spin text-emerald-500" />
                   </div>
                 ) : filteredDocs.length === 0 ? (
-                  <p className="text-center text-3xs text-slate-400 italic py-6">No pages created yet.</p>
+                  <p className="text-center text-[10px] text-slate-400 italic py-6">No pages created yet.</p>
                 ) : (
-                  filteredDocs.map((doc) => (
-                    <button
-                      key={doc._id}
-                      onClick={() => handleSelectDoc(doc)}
-                      className={`flex w-full items-center gap-2 px-3.5 py-2.5 rounded-xl text-left text-xs font-extrabold transition-all duration-200 ${
-                        selectedDoc?._id === doc._id
-                          ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/10'
-                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-900/25 hover:text-slate-900 dark:hover:text-white'
-                      }`}
-                    >
-                      <span>📄</span>
-                      <span className="truncate">{doc.title}</span>
-                    </button>
-                  ))
+                  <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="show"
+                    className="space-y-1"
+                  >
+                    {filteredDocs.map((doc) => (
+                      <motion.button
+                        variants={itemVariants}
+                        key={doc._id}
+                        onClick={() => handleSelectDoc(doc)}
+                        className={`relative flex w-full items-center gap-2 px-3.5 py-2.5 rounded-xl text-left text-xs font-extrabold z-10 transition-colors duration-200 ${
+                          selectedDoc?._id === doc._id
+                            ? 'text-white font-extrabold'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                      >
+                        <span>📄</span>
+                        <span className="truncate">{doc.title}</span>
+                        {selectedDoc?._id === doc._id && (
+                          <motion.div
+                            layoutId="activeDocBg"
+                            className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl -z-10 shadow-md shadow-emerald-500/10"
+                            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                          />
+                        )}
+                      </motion.button>
+                    ))}
+                  </motion.div>
                 )}
               </div>
             </div>
 
             {/* Right Editing Column */}
             <div className="md:col-span-3 flex flex-col h-full overflow-hidden">
-              {selectedDoc ? (
-                <div className="flex flex-col h-full space-y-4">
-                  {/* Save Status & Delete Page */}
-                  <div className="flex items-center justify-between border-b border-slate-200/30 dark:border-slate-800/40 pb-3">
-                    <div className="flex items-center gap-2 text-3xs font-semibold">
-                      {savingDoc ? (
-                        <span className="flex items-center gap-1.5 text-emerald-500 font-extrabold">
-                          <Loader2 className="h-3 w-3 animate-spin" /> Auto-saving to workspace...
-                        </span>
-                      ) : (
-                        <span className="text-slate-400">All edits synchronized</span>
-                      )}
-                      {selectedDoc.lastEditedBy && (
-                        <span className="text-slate-400 dark:text-slate-500 font-medium ml-1">
-                          • Last edit by {selectedDoc.lastEditedBy.name}
-                        </span>
-                      )}
+              <AnimatePresence mode="wait">
+                {selectedDoc ? (
+                  <motion.div
+                    key={selectedDoc._id}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -15 }}
+                    transition={{ duration: 0.22 }}
+                    className="flex flex-col h-full space-y-4"
+                  >
+                    {/* Save Status & Delete Page */}
+                    <div className="flex items-center justify-between border-b border-slate-200/30 dark:border-slate-800/40 pb-3">
+                      <div className="flex items-center gap-2 text-[10px] font-semibold">
+                        {savingDoc ? (
+                          <span className="flex items-center gap-1.5 text-emerald-500 font-extrabold">
+                            <Loader2 className="h-3 w-3 animate-spin" /> Auto-saving...
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">All edits synchronized</span>
+                        )}
+                        {selectedDoc.lastEditedBy && (
+                          <span className="text-slate-400 dark:text-slate-500 font-medium ml-1">
+                            • Last edit by {selectedDoc.lastEditedBy.name}
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => handleDeleteDoc(selectedDoc._id)}
+                        className="text-[10px] font-bold text-rose-500 hover:text-rose-600 px-3 py-1.5 rounded-xl hover:bg-rose-500/5 transition-colors cursor-pointer border border-transparent hover:border-rose-500/10"
+                      >
+                        Delete Page
+                      </button>
                     </div>
 
-                    <button
-                      onClick={() => handleDeleteDoc(selectedDoc._id)}
-                      className="text-4xs font-bold text-rose-500 hover:text-rose-600 px-3 py-1.5 rounded-xl hover:bg-rose-500/5 transition-colors cursor-pointer border border-transparent hover:border-rose-500/10"
-                    >
-                      Delete Page
-                    </button>
-                  </div>
-
-                  {/* Title */}
-                  <input
-                    type="text"
-                    value={selectedDoc.title}
-                    onChange={(e) => handleTitleChange(e.target.value)}
-                    placeholder="Page Title"
-                    className="w-full bg-transparent font-heading font-extrabold text-xl md:text-2xl text-slate-850 dark:text-white outline-none border-b border-transparent focus:border-slate-200/50 dark:focus:border-slate-800 pb-2 placeholder-slate-350"
-                  />
-
-                  {/* Collaborative Content Editor */}
-                  <div className="flex-1 flex flex-col min-h-[250px] relative">
-                    <textarea
-                      value={selectedDoc.content}
-                      onChange={(e) => handleContentChange(e.target.value)}
-                      placeholder="Start writing meeting summaries, roadmap specifications, or wikis here... (edits sync live with online members)"
-                      className="w-full flex-1 bg-white/40 dark:bg-slate-950/10 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl p-4 text-xs font-semibold leading-relaxed outline-none focus:border-emerald-500/35 transition-all scrollbar-premium text-slate-750 dark:text-slate-300 placeholder-slate-455"
+                    {/* Title */}
+                    <input
+                      type="text"
+                      value={selectedDoc.title}
+                      onChange={(e) => handleTitleChange(e.target.value)}
+                      placeholder="Page Title"
+                      className="w-full bg-transparent font-heading font-extrabold text-xl md:text-2xl text-slate-800 dark:text-white outline-none border-b border-transparent focus:border-slate-200/50 dark:focus:border-slate-800 pb-2 placeholder-slate-350"
                     />
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center text-slate-400 h-full py-16 text-center">
-                  <div className="h-16 w-16 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-full flex items-center justify-center text-slate-350 dark:text-slate-700 shadow-inner mb-4">
-                    <BookOpen className="h-8 w-8 text-emerald-500 animate-pulse" />
-                  </div>
-                  <h4 className="text-sm font-extrabold text-slate-850 dark:text-slate-200">No Wiki Page Selected</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-450 mt-1 max-w-sm leading-relaxed">
-                    Select a collaborative document from the sidebar page index, or create a brand new page to start drafting wiki documentation.
-                  </p>
-                  <button
-                    onClick={handleCreateDoc}
-                    className="mt-6 flex items-center gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-250 dark:border-slate-800 px-4.5 py-2 text-xs font-bold text-slate-750 dark:text-slate-300 transition-all cursor-pointer hover:border-emerald-500/30"
+
+                    {/* Collaborative Content Editor */}
+                    <div className="flex-1 flex flex-col min-h-[250px] relative">
+                      <textarea
+                        value={selectedDoc.content}
+                        onChange={(e) => handleContentChange(e.target.value)}
+                        placeholder="Start writing meeting summaries, roadmap specifications, or wikis here... (edits sync live with online members)"
+                        className="w-full flex-1 bg-white/30 dark:bg-slate-950/20 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 rounded-2xl p-5 text-sm font-medium leading-relaxed outline-none focus:border-emerald-500/55 focus:ring-4 focus:ring-emerald-500/5 transition-all scrollbar-premium text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 shadow-inner"
+                      />
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="empty"
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.96 }}
+                    className="flex flex-col items-center justify-center text-slate-400 h-full py-16 text-center"
                   >
-                    <Plus className="h-4 w-4 text-emerald-500" /> Create Wiki Page
-                  </button>
-                </div>
-              )}
+                    <div className="h-16 w-16 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-full flex items-center justify-center text-slate-350 dark:text-slate-700 shadow-inner mb-4">
+                      <BookOpen className="h-8 w-8 text-emerald-500 animate-pulse" />
+                    </div>
+                    <h4 className="text-sm font-extrabold text-slate-800">No Wiki Page Selected</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-450 mt-1 max-w-sm leading-relaxed">
+                      Select a collaborative document from the sidebar page index, or create a brand new page to start drafting wiki documentation.
+                    </p>
+                    <button
+                      onClick={handleCreateDoc}
+                      className="mt-6 flex items-center gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-250 dark:border-slate-800 px-4.5 py-2 text-xs font-bold text-slate-750 dark:text-slate-300 transition-all cursor-pointer hover:border-emerald-500/30"
+                    >
+                      <Plus className="h-4 w-4 text-emerald-500" /> Create Wiki Page
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         ) : (
@@ -607,18 +661,25 @@ const Wiki = () => {
           <>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 glass-card p-3 rounded-2xl shadow-sm mt-4 shrink-0">
               {/* Filter tabs */}
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1 bg-slate-100/40 dark:bg-slate-950/40 p-1 rounded-xl border border-slate-200/30 dark:border-slate-850/40 relative">
                 {['All', 'PDFs', 'Images', 'Links', 'Archives', 'Others'].map((filter) => (
                   <button
                     key={filter}
                     onClick={() => setActiveFilter(filter)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition-all ${
+                    className={`relative px-3.5 py-1.5 rounded-lg text-xs font-extrabold cursor-pointer z-10 transition-colors duration-250 ${
                       activeFilter === filter
-                        ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-bold dark:bg-emerald-950/35'
-                        : 'text-slate-500 hover:bg-slate-100/60 dark:hover:bg-slate-800/40 dark:text-slate-400 border border-transparent'
+                        ? 'text-emerald-600 dark:text-emerald-450 font-bold'
+                        : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                     }`}
                   >
                     {filter}
+                    {activeFilter === filter && (
+                      <motion.div
+                        layoutId="activeFilterBg"
+                        className="absolute inset-0 bg-emerald-500/10 dark:bg-emerald-950/35 border border-emerald-500/20 dark:border-emerald-500/10 rounded-lg -z-10"
+                        transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+                      />
+                    )}
                   </button>
                 ))}
               </div>
@@ -645,25 +706,31 @@ const Wiki = () => {
               ) : filteredAttachments.length === 0 ? (
                 <div className="flex flex-col items-center justify-center text-center p-8 glass-card py-16 shadow-2xs">
                   <div className="h-16 w-16 bg-slate-55/20 dark:bg-slate-955/50 rounded-full flex items-center justify-center text-slate-400 mb-4 shadow-inner">
-                    <BookOpen className="h-8 w-8" />
+                    <BookOpen className="h-8 w-8 text-slate-405 dark:text-slate-600" />
                   </div>
                   <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
                     No Wiki items found
                   </h3>
-                  <p className="text-xs text-slate-450 dark:text-slate-500 mt-1 max-w-xs leading-relaxed">
+                  <p className="text-xs text-slate-450 dark:text-slate-505 mt-1 max-w-xs leading-relaxed">
                     {searchQuery || activeFilter !== 'All'
                       ? 'No items match your active search filters.'
                       : 'Upload PDFs, images, reference links, and folders to assemble the team knowledge base.'}
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <motion.div
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="show"
+                  className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+                >
                   {filteredAttachments.map((item) => {
                     const isUploader = item.uploadedBy?._id === currentUser?._id;
                     const canDelete = isUploader || ['Admin', 'Manager'].includes(currentRole);
 
                     return (
-                      <div
+                      <motion.div
+                        variants={itemVariants}
                         key={item._id}
                         className="glass-card glass-card-hover p-5 flex flex-col justify-between group relative"
                       >
@@ -676,7 +743,7 @@ const Wiki = () => {
                             {canDelete && (
                               <button
                                 onClick={() => handleDeleteAttachment(item._id)}
-                                className="text-slate-400 hover:text-red-500 rounded-lg p-1 hover:bg-red-55/10 cursor-pointer transition-colors"
+                                className="text-slate-400 hover:text-red-500 rounded-lg p-1 hover:bg-red-50/10 cursor-pointer transition-colors"
                                 title="Delete attachment"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -685,16 +752,16 @@ const Wiki = () => {
                           </div>
 
                           <h3
-                            className="font-heading font-bold text-xs text-slate-800 dark:text-slate-100 line-clamp-2 leading-snug group-hover:text-emerald-500 transition-colors"
+                            className="font-heading font-extrabold text-xs text-slate-800 dark:text-slate-100 line-clamp-2 leading-snug group-hover:text-emerald-500 transition-colors"
                             title={item.name}
                           >
                             {item.name}
                           </h3>
 
-                          <div className="mt-3.5 flex flex-col gap-1 text-3xs text-slate-405 font-semibold">
+                          <div className="mt-3.5 flex flex-col gap-1 text-[10px] text-slate-500 font-semibold">
                             <p className="flex items-center gap-1">
                               <span className="text-slate-400">Uploaded by:</span>
-                              <strong className="text-slate-500 dark:text-slate-350">{item.uploadedBy?.name || 'Unknown'}</strong>
+                              <strong className="text-slate-550 dark:text-slate-350">{item.uploadedBy?.name || 'Unknown'}</strong>
                             </p>
                             <p className="text-slate-400">
                               {new Date(item.createdAt).toLocaleDateString(undefined, {
@@ -707,7 +774,7 @@ const Wiki = () => {
                         </div>
 
                         <div className="border-t border-slate-100 dark:border-slate-850 mt-4 pt-3 flex items-center justify-between gap-2">
-                          <span className="text-3xs font-extrabold text-slate-400 dark:text-slate-505 uppercase tracking-wider">
+                          <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                             {item.type === 'link' ? 'LINK' : formatBytes(item.size)}
                           </span>
 
@@ -716,7 +783,7 @@ const Wiki = () => {
                               href={item.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-3xs font-bold text-emerald-500 hover:underline hover:text-emerald-600 transition-colors"
+                              className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 hover:underline hover:text-emerald-600 transition-colors"
                             >
                               Visit Link <ExternalLink className="h-3 w-3" />
                             </a>
@@ -726,7 +793,7 @@ const Wiki = () => {
                                 href={item.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1 rounded-lg bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 dark:hover:bg-slate-850 p-1 px-2.5 text-3xs font-bold text-slate-600 dark:text-slate-300 transition-colors border border-slate-200/50 dark:border-slate-850"
+                                className="flex items-center gap-1 rounded-lg bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 dark:hover:bg-slate-850 p-1 px-2.5 text-[10px] font-bold text-slate-600 dark:text-slate-300 transition-colors border border-slate-200/50 dark:border-slate-855"
                                 title="View file"
                               >
                                 <Eye className="h-3 w-3" /> View
@@ -736,7 +803,7 @@ const Wiki = () => {
                                 download={item.name}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-950/20 dark:hover:bg-emerald-955/45 p-1 px-2.5 text-3xs font-bold text-emerald-600 dark:text-emerald-450 transition-colors border border-emerald-100/35 dark:border-emerald-950/50"
+                                className="flex items-center gap-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-950/20 dark:hover:bg-emerald-955/45 p-1 px-2.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-450 transition-colors border border-emerald-100/35 dark:border-emerald-950/50"
                                 title="Download file"
                               >
                                 <Download className="h-3 w-3" /> Get
@@ -744,10 +811,10 @@ const Wiki = () => {
                             </div>
                           )}
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })}
-                </div>
+                </motion.div>
               )}
             </div>
           </>
@@ -768,192 +835,235 @@ const Wiki = () => {
             <Loader2 className="h-5 w-5 animate-spin text-emerald-500" />
           </div>
         ) : (
-          <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1 scrollbar-premium">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="space-y-3 max-h-[350px] overflow-y-auto pr-1 scrollbar-premium"
+          >
             {members.map((member) => (
-              <div key={member._id} className="flex items-center gap-3 p-2 rounded-xl bg-slate-50/50 dark:bg-slate-950/20 border border-slate-150 dark:border-slate-850/80">
+              <motion.div
+                variants={itemVariants}
+                key={member._id}
+                className="flex items-center gap-3 p-2 rounded-xl bg-slate-50/50 dark:bg-slate-950/20 border border-slate-150 dark:border-slate-850/80"
+              >
                 <div className="relative shrink-0">
                   <img
                     src={member.user?.avatar}
                     alt={member.user?.name}
                     className="h-7 w-7 rounded-full object-cover border border-slate-100 dark:border-slate-850"
                   />
-                  <span className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-white dark:border-slate-950 ${
+                  <span className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-white dark:border-slate-955 ${
                     member.user?.status === 'online' ? 'bg-emerald-500' : member.user?.status === 'away' ? 'bg-amber-500' : 'bg-slate-400'
                   }`}></span>
                 </div>
-                <div className="truncate text-3xs">
-                  <h4 className="font-bold text-slate-700 dark:text-slate-200 truncate">{member.user?.name}</h4>
+                <div className="truncate text-[10px]">
+                  <h4 className="font-extrabold text-slate-700 dark:text-slate-200 truncate">{member.user?.name}</h4>
                   <span className="text-emerald-500 font-extrabold uppercase text-[9px] tracking-wider mt-0.5 block">{member.role}</span>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
 
       {/* MODAL: UPLOAD FILE */}
-      {fileModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-100 dark:border-slate-800 scale-in duration-200 animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-805 pb-3 mb-4">
-              <h3 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                <UploadCloud className="h-5 w-5 text-emerald-500 animate-bounce" /> Upload Workspace Asset
-              </h3>
-              <button
-                onClick={() => setFileModalOpen(false)}
-                className="text-slate-400 hover:text-slate-650 rounded p-1 cursor-pointer"
-              >
-                <X className="h-4.5 w-4.5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleUploadFile} className="space-y-4">
-              {/* Drag and Drop Zone */}
-              <div
-                onDragEnter={handleDrag}
-                onDragOver={handleDrag}
-                onDragLeave={handleDrag}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current.click()}
-                className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
-                  dragActive
-                    ? 'border-emerald-500 bg-emerald-500/5'
-                    : 'border-slate-250 dark:border-slate-800 hover:border-emerald-500/35 bg-slate-50/20 dark:bg-slate-950/20'
-                }`}
-              >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <div className="flex flex-col items-center justify-center">
-                  <UploadCloud className="h-10 w-10 text-slate-400 mb-2.5" />
-                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    {selectedFile ? selectedFile.name : 'Click to select or drag & drop file'}
-                  </p>
-                  <p className="text-[10px] text-slate-455 mt-1">Supports PDFs, Images, Archives up to 10MB</p>
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              {uploading && (
-                <div className="space-y-1">
-                  <div className="flex justify-between text-3xs font-extrabold text-emerald-500">
-                    <span>Uploading file...</span>
-                    <span>{uploadProgress}%</span>
-                  </div>
-                  <div className="w-full bg-slate-100 dark:bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-205 dark:border-slate-855">
-                    <div
-                      className="bg-emerald-500 h-full rounded-full transition-all duration-300 shadow-sm"
-                      style={{ width: `${uploadProgress}%` }}
-                    ></div>
-                  </div>
-                </div>
-              )}
-
-              {/* Submit footer */}
-              <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-805/50">
+      <AnimatePresence>
+        {fileModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setFileModalOpen(false)}
+              className="absolute inset-0 bg-black/55 backdrop-blur-sm"
+            />
+            {/* Modal Content */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", duration: 0.35 }}
+              className="relative w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-100 dark:border-slate-800 z-10"
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-805 pb-3 mb-4">
+                <h3 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <UploadCloud className="h-5 w-5 text-emerald-500 animate-bounce" /> Upload Workspace Asset
+                </h3>
                 <button
-                  type="button"
                   onClick={() => setFileModalOpen(false)}
-                  disabled={uploading}
-                  className="rounded-lg px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-850 disabled:opacity-50 transition-colors"
+                  className="text-slate-400 hover:text-slate-650 rounded p-1 cursor-pointer"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={uploading || !selectedFile}
-                  className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-650 px-4 py-2 text-xs font-bold text-white shadow-md shadow-emerald-500/10 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
-                >
-                  {uploading ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving...
-                    </>
-                  ) : (
-                    'Upload'
-                  )}
+                  <X className="h-4.5 w-4.5" />
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleUploadFile} className="space-y-4">
+                {/* Drag and Drop Zone */}
+                <div
+                  onDragEnter={handleDrag}
+                  onDragOver={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current.click()}
+                  className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
+                    dragActive
+                      ? 'border-emerald-500 bg-emerald-500/5'
+                      : 'border-slate-250 dark:border-slate-800 hover:border-emerald-500/35 bg-slate-55/10 dark:bg-slate-950/20'
+                  }`}
+                >
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <div className="flex flex-col items-center justify-center">
+                    <UploadCloud className="h-10 w-10 text-slate-400 mb-2.5" />
+                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      {selectedFile ? selectedFile.name : 'Click to select or drag & drop file'}
+                    </p>
+                    <p className="text-[10px] text-slate-455 mt-1">Supports PDFs, Images, Archives up to 10MB</p>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                {uploading && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[10px] font-extrabold text-emerald-500">
+                      <span>Uploading file...</span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-955 h-2 rounded-full overflow-hidden border border-slate-205 dark:border-slate-855">
+                      <div
+                        className="bg-emerald-500 h-full rounded-full transition-all duration-300 shadow-sm"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Submit footer */}
+                <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-105 dark:border-slate-805/50">
+                  <button
+                    type="button"
+                    onClick={() => setFileModalOpen(false)}
+                    disabled={uploading}
+                    className="rounded-lg px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-850 disabled:opacity-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={uploading || !selectedFile}
+                    className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-650 px-4 py-2 text-xs font-bold text-white shadow-md shadow-emerald-500/10 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving...
+                      </>
+                    ) : (
+                      'Upload'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* MODAL: ATTACH LINK */}
-      {linkModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-100 dark:border-slate-800 scale-in duration-200 animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-805 pb-3 mb-4">
-              <h3 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                <Globe className="h-5 w-5 text-indigo-500" /> Attach External Reference Link
-              </h3>
-              <button
-                onClick={() => setLinkModalOpen(false)}
-                className="text-slate-400 hover:text-slate-650 rounded p-1 cursor-pointer"
-              >
-                <X className="h-4.5 w-4.5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleAttachLink} className="space-y-4">
-              <div>
-                <label className="text-3xs font-semibold text-slate-400 dark:text-slate-550 uppercase block mb-1 tracking-wider">
-                  Link Title
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Design Specs, Figma File"
-                  value={linkTitle}
-                  onChange={(e) => setLinkTitle(e.target.value)}
-                  className="w-full rounded-lg border border-slate-205 dark:border-slate-800 bg-white dark:bg-slate-950 px-3.5 py-2 text-xs text-slate-800 dark:text-white outline-none focus:border-green-500 premium-input"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-3xs font-semibold text-slate-400 dark:text-slate-550 uppercase block mb-1 tracking-wider">
-                  URL / Destination Address
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. docs.google.com/document/..."
-                  value={linkUrl}
-                  onChange={(e) => setLinkUrl(e.target.value)}
-                  className="w-full rounded-lg border border-slate-205 dark:border-slate-800 bg-white dark:bg-slate-950 px-3.5 py-2 text-xs text-slate-800 dark:text-white outline-none focus:border-green-500 premium-input"
-                  required
-                />
-              </div>
-
-              {/* Submit footer */}
-              <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-805/50">
+      <AnimatePresence>
+        {linkModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setLinkModalOpen(false)}
+              className="absolute inset-0 bg-black/55 backdrop-blur-sm"
+            />
+            {/* Modal Content */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", duration: 0.35 }}
+              className="relative w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-100 dark:border-slate-800 z-10"
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-805 pb-3 mb-4">
+                <h3 className="font-heading text-base font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <Globe className="h-5 w-5 text-indigo-500 animate-pulse" /> Attach External Reference Link
+                </h3>
                 <button
-                  type="button"
                   onClick={() => setLinkModalOpen(false)}
-                  disabled={attachingLink}
-                  className="rounded-lg px-4 py-2 text-xs font-bold text-slate-550 hover:bg-slate-100 dark:hover:bg-slate-850 disabled:opacity-50 transition-colors"
+                  className="text-slate-400 hover:text-slate-650 rounded p-1 cursor-pointer"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={attachingLink}
-                  className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-650 px-4 py-2 text-xs font-bold text-white shadow-md shadow-emerald-500/10 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
-                >
-                  {attachingLink ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving...
-                    </>
-                  ) : (
-                    'Attach Link'
-                  )}
+                  <X className="h-4.5 w-4.5" />
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleAttachLink} className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase block mb-1 tracking-wider">
+                    Link Title
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Design Specs, Figma File"
+                    value={linkTitle}
+                    onChange={(e) => setLinkTitle(e.target.value)}
+                    className="w-full rounded-lg border border-slate-205 dark:border-slate-800 bg-white dark:bg-slate-950 px-3.5 py-2 text-xs text-slate-800 dark:text-white outline-none focus:border-green-500 premium-input"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase block mb-1 tracking-wider">
+                    URL / Destination Address
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. docs.google.com/document/..."
+                    value={linkUrl}
+                    onChange={(e) => setLinkUrl(e.target.value)}
+                    className="w-full rounded-lg border border-slate-205 dark:border-slate-800 bg-white dark:bg-slate-955 px-3.5 py-2 text-xs text-slate-800 dark:text-white outline-none focus:border-green-500 premium-input"
+                    required
+                  />
+                </div>
+
+                {/* Submit footer */}
+                <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-805/50">
+                  <button
+                    type="button"
+                    onClick={() => setLinkModalOpen(false)}
+                    disabled={attachingLink}
+                    className="rounded-lg px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-850 disabled:opacity-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={attachingLink}
+                    className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-650 px-4 py-2 text-xs font-bold text-white shadow-md shadow-emerald-500/10 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {attachingLink ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving...
+                      </>
+                    ) : (
+                      'Attach Link'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 };

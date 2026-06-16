@@ -443,7 +443,7 @@ const GitFeed = () => {
                   <AlertCircle className="h-6 w-6" />
                 </div>
                 <div className="max-w-sm mx-auto space-y-1">
-                  <h4 className="font-heading text-sm font-bold text-slate-855 dark:text-slate-200">No activities found</h4>
+                  <h4 className="font-heading text-sm font-bold text-slate-800">No activities found</h4>
                   <p className="text-xs text-slate-400 leading-relaxed">
                     {searchQuery
                       ? 'No cached commits matched your search parameters. Try adjusting your query keywords.'
@@ -525,7 +525,7 @@ const GitFeed = () => {
           </div>
           
           <div className="space-y-2 max-w-md mx-auto">
-            <h3 className="font-heading text-lg font-bold text-slate-850 dark:text-white">
+            <h3 className="font-heading text-lg font-bold text-slate-800 dark:text-white">
               Connect a GitHub Repository
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">

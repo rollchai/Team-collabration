@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Hash,
   Send,
@@ -988,117 +989,133 @@ const Chat = () => {
         </div>
         
         {/* Floating Huddle Controller */}
-        {inHuddle && (
-          <div className="p-3 border-t border-slate-205/60 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/95 animate-in slide-in-from-bottom-2 duration-200">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="flex h-2 w-2 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span className="text-3xs font-extrabold text-emerald-500 uppercase tracking-wider">
-                  Voice Connected
-                </span>
+        <AnimatePresence>
+          {inHuddle && (
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 15 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="p-4 border-t border-slate-200/50 dark:border-slate-850/50 bg-white/90 dark:bg-[#090e1a]/95 backdrop-blur-md"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2.5 w-2.5 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                  </span>
+                  <span className="text-3xs font-black text-emerald-500 uppercase tracking-widest">
+                    Huddle Connected
+                  </span>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={leaveVoiceHuddle}
+                  className="text-red-500 hover:text-white p-2 hover:bg-red-500 rounded-xl transition-all cursor-pointer flex items-center justify-center shrink-0 border border-transparent hover:border-red-400/20"
+                  title="Disconnect"
+                >
+                  <PhoneOff className="h-3.5 w-3.5" />
+                </motion.button>
               </div>
-              <button
-                onClick={leaveVoiceHuddle}
-                className="text-red-500 hover:text-red-600 p-1.5 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer flex items-center justify-center shrink-0"
-                title="Disconnect"
-              >
-                <PhoneOff className="h-3.5 w-3.5" />
-              </button>
-            </div>
 
-            <div className="flex items-center justify-between bg-white dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200/50 dark:border-slate-850/50 shadow-inner mb-2.5">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="relative shrink-0">
-                  <img
-                    src={user?.avatar}
-                    alt={user?.name}
-                    className={`h-7 w-7 rounded-full object-cover border border-slate-100 ${
-                      huddleParticipants.find(p => p.socketId === socket?.id)?.isSpeaking
-                        ? 'ring-2 ring-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
-                        : ''
+              <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200/40 dark:border-slate-850/50 shadow-inner mb-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative shrink-0">
+                    <img
+                      src={user?.avatar}
+                      alt={user?.name}
+                      className={`h-8 w-8 rounded-full object-cover border border-slate-100 dark:border-slate-800 ${
+                        huddleParticipants.find(p => p.socketId === socket?.id)?.isSpeaking
+                          ? 'ring-2 ring-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)] pulse-glow'
+                          : ''
+                      }`}
+                    />
+                  </div>
+                  <div className="truncate">
+                    <h5 className="text-4xs font-bold text-slate-800 dark:text-slate-100 leading-none truncate w-24">
+                      {user?.name}
+                    </h5>
+                    <p className="text-[9px] text-slate-400 mt-1 leading-none font-semibold">Your Mic</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={toggleLocalMute}
+                    className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
+                      localMuted
+                        ? 'bg-red-500/10 border-red-500/25 text-red-500 hover:bg-red-500 hover:text-white'
+                        : 'bg-white hover:bg-slate-105 dark:bg-slate-900 dark:hover:bg-slate-850 border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 shadow-2xs'
                     }`}
-                  />
-                </div>
-                <div className="truncate">
-                  <h5 className="text-4xs font-bold text-slate-800 dark:text-slate-100 leading-none truncate w-24">
-                    {user?.name}
-                  </h5>
-                  <p className="text-[9px] text-slate-400 mt-0.5 leading-none">Your Mic</p>
+                    title={localMuted ? 'Unmute microphone' : 'Mute microphone'}
+                  >
+                    {localMuted ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setLocalDeafened(!localDeafened)}
+                    className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
+                      localDeafened
+                        ? 'bg-red-500/10 border-red-500/25 text-red-500 hover:bg-red-500 hover:text-white'
+                        : 'bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-850 border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 shadow-2xs'
+                    }`}
+                    title={localDeafened ? 'Undeafen speakers' : 'Deafen speakers'}
+                  >
+                    <Headphones className="h-3.5 w-3.5" />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={isScreenSharing ? stopScreenShare : startScreenShare}
+                    className={`p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
+                      isScreenSharing
+                        ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-500 hover:bg-emerald-500 hover:text-white'
+                        : 'bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-850 border-slate-200 dark:border-slate-800 text-slate-505 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 shadow-2xs'
+                    }`}
+                    title={isScreenSharing ? 'Stop sharing screen' : 'Share screen'}
+                  >
+                    <Monitor className="h-3.5 w-3.5" />
+                  </motion.button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={toggleLocalMute}
-                  className={`p-1.5 rounded-lg border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
-                    localMuted
-                      ? 'bg-red-500/10 border-red-500/25 text-red-500 hover:bg-red-500 hover:text-white'
-                      : 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-850 border-slate-200 dark:border-slate-800 text-slate-505 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                  }`}
-                  title={localMuted ? 'Unmute microphone' : 'Mute microphone'}
-                >
-                  {localMuted ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
-                </button>
-                <button
-                  onClick={() => setLocalDeafened(!localDeafened)}
-                  className={`p-1.5 rounded-lg border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
-                    localDeafened
-                      ? 'bg-red-500/10 border-red-500/25 text-red-500 hover:bg-red-500 hover:text-white'
-                      : 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-850 border-slate-200 dark:border-slate-800 text-slate-550 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                  }`}
-                  title={localDeafened ? 'Undeafen speakers' : 'Deafen speakers'}
-                >
-                  <Headphones className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  onClick={isScreenSharing ? stopScreenShare : startScreenShare}
-                  className={`p-1.5 rounded-lg border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
-                    isScreenSharing
-                      ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-500 hover:bg-emerald-500 hover:text-white'
-                      : 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-850 border-slate-200 dark:border-slate-800 text-slate-505 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                  }`}
-                  title={isScreenSharing ? 'Stop sharing screen' : 'Share screen'}
-                >
-                  <Monitor className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Participants avatars grid */}
-            {huddleParticipants.length > 1 && (
-              <div className="space-y-1.5 border-t border-slate-200/50 dark:border-slate-850/50 pt-2">
-                <div className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                  Others in call ({huddleParticipants.length - 1})
+              {/* Participants avatars grid */}
+              {huddleParticipants.length > 1 && (
+                <div className="space-y-2 border-t border-slate-200/50 dark:border-slate-850/50 pt-2.5">
+                  <div className="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                    Others in huddle ({huddleParticipants.length - 1})
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {huddleParticipants
+                      .filter(p => p.socketId !== socket?.id)
+                      .map(p => (
+                        <div key={p.socketId} className="relative group/avatar" title={p.name}>
+                          <img
+                            src={p.avatar}
+                            alt={p.name}
+                            className={`h-6 w-6 rounded-full object-cover border border-slate-100 dark:border-slate-800 ${
+                              p.isSpeaking
+                                ? 'ring-2 ring-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                                : ''
+                            }`}
+                          />
+                          {p.isMuted && (
+                            <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 border border-white dark:border-slate-900 text-white text-[7px] font-bold">
+                              ✕
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {huddleParticipants
-                    .filter(p => p.socketId !== socket?.id)
-                    .map(p => (
-                      <div key={p.socketId} className="relative group/avatar" title={p.name}>
-                        <img
-                          src={p.avatar}
-                          alt={p.name}
-                          className={`h-6 w-6 rounded-full object-cover border border-slate-100 dark:border-slate-800 ${
-                            p.isSpeaking
-                              ? 'ring-2 ring-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
-                              : ''
-                          }`}
-                        />
-                        {p.isMuted && (
-                          <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 border border-white dark:border-slate-900 text-white text-[7px] font-bold flex items-center justify-center">
-                            ✕
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* CHAT MESSAGES WINDOW */}
@@ -1172,7 +1189,7 @@ const Chat = () => {
                 </div>
               ) : messages.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center text-slate-400 py-10">
-                  <div className="h-16 w-16 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center text-slate-350 dark:text-slate-850 mb-3 shadow-inner">
+                  <div className="h-16 w-16 bg-slate-50 dark:bg-slate-950 rounded-full flex items-center justify-center text-slate-350 dark:text-slate-500 mb-3 shadow-inner">
                     <Hash className="h-8 w-8" />
                   </div>
                   <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Start of conversation</p>
@@ -1275,7 +1292,7 @@ const Chat = () => {
                         ? `Message #${currentChannel.name}...`
                         : `Message DM...`
                     }
-                    className="flex-1 rounded-xl border border-slate-205 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-2.5 text-xs text-slate-850 dark:text-white outline-none focus:border-green-500 premium-input"
+                    className="flex-1 rounded-xl border border-slate-205 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-2.5 text-xs text-slate-800 dark:text-white outline-none focus:border-green-500 premium-input"
                   />
 
                   <button
