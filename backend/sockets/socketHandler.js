@@ -1,4 +1,7 @@
 import User from '../models/User.js';
+import crypto from 'crypto';
+import AIChat from '../models/AIChat.js';
+import { getAIResponse } from '../Service/groqService.js';
 
 export const socketHandler = (io) => {
   // Store connected user sockets for presence tracking
@@ -206,6 +209,71 @@ export const socketHandler = (io) => {
         isSpeaking
       });
     });
+
+    // AI Auto Chat for Contact Us
+    socket.on('ai_message', async (data) => {
+      try {
+        const { sessionId, message, contactInfo } = data;
+
+        let currentSessionId = sessionId;
+        if (!currentSessionId) {
+          currentSessionId = crypto.randomUUID();
+        }
+
+        let chat = await AIChat.findOne({ sessionId: currentSessionId });
+        if (!chat) {
+          chat = await AIChat.create({
+            sessionId: currentSessionId,
+            messages: [],
+          });
+        }
+
+        if (contactInfo) {
+          chat.contactInfo = {
+            ...chat.contactInfo,
+            ...contactInfo,
+          };
+        }
+
+        let aiReply = null;
+
+        if (message) {
+          chat.messages.push({
+            role: 'user',
+            content: message,
+          });
+
+          const history = chat.messages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          }));
+
+          aiReply = await getAIResponse(history);
+
+          chat.messages.push({
+            role: 'assistant',
+            content: aiReply,
+          });
+        }
+
+        await chat.save();
+
+        socket.emit('ai_response', {
+          success: true,
+          sessionId: currentSessionId,
+          reply: aiReply,
+          messages: chat.messages,
+          contactInfo: chat.contactInfo,
+        });
+      } catch (err) {
+        console.error('Socket AI message error:', err);
+        socket.emit('ai_response', {
+          success: false,
+          error: 'Failed to process AI message',
+        });
+      }
+    });
+
     // Clean up on disconnect
     socket.on('disconnect', async () => {
       console.log(`Socket disconnected: ${socket.id}`);

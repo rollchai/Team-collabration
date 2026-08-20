@@ -48,6 +48,7 @@ import { updateTaskLocally } from '../redux/slices/taskSlice';
 import API from '../services/api';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import AIAssistant from '../components/AIAssistant';
 
 // Socket export reference for components to reuse
 export let socket = null;
@@ -899,6 +900,9 @@ const DashboardLayout = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Floating AI Assistant Chat Widget */}
+      <AIAssistant />
     </div>
   );
 };
