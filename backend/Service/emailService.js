@@ -12,6 +12,9 @@ const sendEmail = async (options) => {
 
   // Fallback to console log if SMTP settings are not fully configured
   if (!smtpHost || !smtpPort || !smtpEmail || !smtpPassword) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('SMTP credentials and settings are missing in production environment.');
+    }
     console.log('\n==================================================');
     console.log('📧 EMAIL SIMULATION (SMTP not configured in .env)');
     console.log(`To:      ${options.email}`);
