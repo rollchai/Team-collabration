@@ -28,7 +28,8 @@ const sendEmail = async (options) => {
   // Create transporter
   const transporter = nodemailer.createTransport({
     host: smtpHost,
-    port: smtpPort,
+    port: parseInt(smtpPort, 10),
+    secure: parseInt(smtpPort, 10) === 465, // Use SSL/TLS for port 465
     auth: {
       user: smtpEmail,
       pass: smtpPassword,
