@@ -46,8 +46,7 @@ import { updateTaskLocally } from '../redux/slices/taskSlice';
 
 // API Client
 import API from '../services/api';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import AIAssistant from '../components/AIAssistant';
 
 // Socket export reference for components to reuse
@@ -321,7 +320,6 @@ const DashboardLayout = () => {
 
   return (
     <div className={`flex h-screen w-screen overflow-hidden ${darkMode ? 'dark-mode dark' : 'bg-slate-50'}`}>
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
 
       {/* LEFT SIDEBAR - Desktop */}
       <aside className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-slate-200/50 dark:border-slate-800/50 bg-white/80 dark:bg-[#070b13] backdrop-blur-lg transition-transform duration-300 md:static md:translate-x-0 ${

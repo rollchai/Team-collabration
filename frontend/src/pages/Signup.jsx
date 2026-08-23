@@ -1,15 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { signupUser } from '../redux/slices/authSlice';
-import { Loader2 } from 'lucide-react';
+import { signupUser, clearError } from '../redux/slices/authSlice';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 
 const Signup = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const { loading, error, isAuthenticated } = useSelector((state) => state.auth);
 
@@ -18,6 +19,14 @@ const Signup = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
+
+  // Clear any existing auth errors on mount/unmount
+  useEffect(() => {
+    dispatch(clearError());
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -101,18 +110,31 @@ const Signup = () => {
           <label className="text-3xs font-extrabold text-slate-500 dark:text-slate-450 uppercase tracking-wider block mb-1.5">
             Password
           </label>
-          <input
-            type="password"
-            placeholder="••••••••"
-            {...register('password', {
-              required: 'Password is required',
-              minLength: {
-                value: 6,
-                message: 'Password must be at least 6 characters',
-              },
-            })}
-            className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-950/40 px-3.5 py-2.5 text-xs text-slate-800 dark:text-white outline-none premium-input backdrop-blur-md placeholder-slate-400 transition-all duration-200"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="••••••••"
+              {...register('password', {
+                required: 'Password is required',
+                minLength: {
+                  value: 6,
+                  message: 'Password must be at least 6 characters',
+                },
+              })}
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-950/40 pl-3.5 pr-10 py-2.5 text-xs text-slate-800 dark:text-white outline-none premium-input backdrop-blur-md placeholder-slate-400 transition-all duration-200"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors focus:outline-none cursor-pointer"
+            >
+              {showPassword ? (
+                <EyeOff className="h-4.5 w-4.5" />
+              ) : (
+                <Eye className="h-4.5 w-4.5" />
+              )}
+            </button>
+          </div>
           {errors.password && (
             <span className="text-3xs text-rose-500 mt-1.5 block font-bold">
               {errors.password.message}
