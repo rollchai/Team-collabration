@@ -27,6 +27,7 @@ import gitRoutes from './routes/gitRoutes.js';
 import documentRoutes from './routes/documentRoutes.js';
 import sprintRoutes from './routes/sprintRoutes.js';
 import aichatRoutes from './routes/aichatRoutes.js';
+import voiceRoutes from './routes/voiceRoutes.js';
 
 dotenv.config();
 
@@ -100,6 +101,7 @@ app.use('/api/git', gitRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/sprints', sprintRoutes);
 app.use('/api/aichat', aichatRoutes);
+app.use('/api/voice', voiceRoutes);
 
 // Root Endpoint
 app.get('/', (req, res) => {
